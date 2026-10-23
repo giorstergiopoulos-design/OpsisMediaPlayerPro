@@ -1,4 +1,5 @@
 using System;
+using MediaPlayerPro.SubCore;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -29,7 +30,7 @@ namespace MediaPlayerPro
 
     public partial class MainWindow
     {
-        static readonly HttpClient http = new HttpClient();
+        static readonly HttpClient http = new HttpClient { Timeout = TimeSpan.FromSeconds(25) };
         static MainWindow() { http.DefaultRequestHeaders.UserAgent.ParseAdd("MediaPlayerPro/1.0"); }
         static readonly string CfgFile = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MediaPlayerPro", "settings.json");
         string lastSub;
@@ -71,6 +72,7 @@ namespace MediaPlayerPro
                                          "pl cs sk hu ro hr sl".Contains(l) ? 1250 : 1252;
 
         // ---------- Ενσωματωμένος αυτόματος συγχρονισμός με τον ήχο ----------
+        // Η λογική (ανίχνευση ομιλίας, συσχέτιση, απόκλιση fps) είναι στο SubCore\SpeechAlign.cs και δοκιμάζεται με συνθετικά δεδομένα.
         async Task SyncCurrent()
         {
             var v = CurPath(); var s = lastSub ?? FindSrt(v);
@@ -78,86 +80,82 @@ namespace MediaPlayerPro
             await RunSync(v, s);
         }
 
-        async Task<bool> ExtractAudio(string video, string wav)
-        {
-            using (var l2 = new LibVLC("--no-video", "--quiet"))
-            using (var m = new Media(l2, video, FromType.FromPath))
-            {
-                m.AddOption(":sout=#transcode{acodec=s16l,channels=1,samplerate=8000}:std{access=file,mux=wav,dst=\"" + wav + "\"}");
-                m.AddOption(":no-sout-all"); m.AddOption(":sout-keep"); m.AddOption(":stop-time=1800");
-                using (var p = new MediaPlayer(m))
-                {
-                    p.Play(); var sw = Stopwatch.StartNew();
-                    while (sw.Elapsed.TotalMinutes < 20)
-                    {
-                        await Task.Delay(500); var st = p.State;
-                        if (st == VLCState.Ended || st == VLCState.Stopped || st == VLCState.Error) break;
-                        Say("Ανάλυση ήχου… " + Math.Min(99, p.Time / 18000) + "%");
-                    }
-                    p.Stop();
-                }
-            }
-            return File.Exists(wav) && new FileInfo(wav).Length > 100000;
-        }
+        const int PcmRate = 8000;
 
-        static bool[] Envelope(string wav)
-        {
-            var b = File.ReadAllBytes(wav); int o0 = 44;
-            for (int i = 12; i < Math.Min(b.Length - 4, 512); i++) if (b[i] == 'd' && b[i + 1] == 'a' && b[i + 2] == 't' && b[i + 3] == 'a') { o0 = i + 8; break; }
-            int n = (b.Length - o0) / 1600; if (n < 100) return null;
-            var db = new double[n];
-            for (int f = 0; f < n; f++) { double s = 0; int o = o0 + f * 1600; for (int k = 0; k < 800; k++) { short v = BitConverter.ToInt16(b, o + k * 2); s += (double)v * v; } db[f] = 10 * Math.Log10(s / 800 + 1); }
-            var sorted = (double[])db.Clone(); Array.Sort(sorted);
-            double lo = sorted[(int)(n * .2)], hi = sorted[(int)(n * .9)], thr = lo + .45 * (hi - lo);
-            return db.Select(x => x > thr).ToArray();
-        }
-
-        static readonly Regex CueRx = new Regex(@"(\d+):(\d+):(\d+)[,.](\d+)\s*-->\s*(\d+):(\d+):(\d+)[,.](\d+)");
-        static double Sec(Match m, int g) => int.Parse(m.Groups[g].Value) * 3600 + int.Parse(m.Groups[g + 1].Value) * 60 + int.Parse(m.Groups[g + 2].Value) + int.Parse(m.Groups[g + 3].Value.PadRight(3, '0').Substring(0, 3)) / 1000.0;
-        static List<(double s, double e)> Cues(string text) => CueRx.Matches(text).Cast<Match>().Select(m => (Sec(m, 1), Sec(m, 5))).ToList();
-
-        // Διασταυρωτική συσχέτιση "ομιλία ήχου" ↔ "γραμμές υποτίτλων" για μετατόπιση και απόκλιση fps
-        static (int shift, double ratio, double score) Align(bool[] sp, List<(double s, double e)> cues)
-        {
-            int N = sp.Length, R = 2400; var A = sp.Select(x => (sbyte)(x ? 1 : -1)).ToArray();
-            (int, double, double) best = (0, 1, double.MinValue);
-            foreach (var r in new[] { 1.0, 25 / 23.976, 23.976 / 25, 24 / 23.976, 23.976 / 24, 25.0 / 24, 24.0 / 25 })
-            {
-                var S = new sbyte[N + 2 * R]; Array.Fill(S, (sbyte)-1);
-                foreach (var c in cues) { int a = Math.Max(0, (int)(c.s * r * 10) + R), b = Math.Min(S.Length - 1, (int)(c.e * r * 10) + R); for (int k = a; k <= b; k++) S[k] = 1; }
-                for (int sh = -R; sh <= R; sh++)
-                {
-                    int off = R - sh, sum = 0;
-                    for (int i = 0; i < N; i++) sum += A[i] * S[i + off];
-                    if (sum > best.Item3) best = (sh, r, sum);
-                }
-            }
-            return (best.Item1, best.Item2, best.Item3 / N);
-        }
-
-        static string Ts(double t) { var ts = TimeSpan.FromSeconds(Math.Max(0, t)); return $"{(int)ts.TotalHours:00}:{ts.Minutes:00}:{ts.Seconds:00},{ts.Milliseconds:000}"; }
-
-        async Task RunSync(string video, string sub)
+        /// <summary>Βγάζει ένα τμήμα του ήχου ως 8 kHz μονοφωνικό PCM (μέσω LibVLC, χωρίς ffmpeg). null αν αποτύχει.</summary>
+        async Task<short[]> ExtractPcm(string video, double startSec, double lenSec, string label)
         {
             string wav = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "mpp_" + Guid.NewGuid().ToString("N") + ".wav");
             try
             {
+                using (var l2 = new LibVLC("--no-video", "--quiet"))
+                using (var m = new Media(l2, video, FromType.FromPath))
+                {
+                    m.AddOption(":sout=#transcode{acodec=s16l,channels=1,samplerate=" + PcmRate + "}:std{access=file,mux=wav,dst=\"" + wav + "\"}");
+                    m.AddOption(":no-sout-all"); m.AddOption(":sout-keep");
+                    if (startSec > 0) m.AddOption(":start-time=" + startSec.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                    m.AddOption(":stop-time=" + (startSec + lenSec).ToString(System.Globalization.CultureInfo.InvariantCulture));
+                    using (var p = new MediaPlayer(m))
+                    {
+                        p.Play(); var sw = Stopwatch.StartNew();
+                        while (sw.Elapsed.TotalMinutes < 10)
+                        {
+                            await Task.Delay(400); var st = p.State;
+                            if (st == VLCState.Ended || st == VLCState.Stopped || st == VLCState.Error) break;
+                            Say($"Ανάλυση ήχου ({label})… " + Math.Min(99, (int)((p.Time / 1000.0 - startSec) / lenSec * 100)) + "%");
+                        }
+                        p.Stop();
+                    }
+                }
+                return File.Exists(wav) && new FileInfo(wav).Length > PcmRate * 2 * 20 ? ReadWav16(wav) : null;
+            }
+            finally { try { File.Delete(wav); } catch { } }
+        }
+
+        static short[] ReadWav16(string wav)
+        {
+            var b = File.ReadAllBytes(wav); int o0 = 44;
+            for (int i = 12; i < Math.Min(b.Length - 8, 4096); i++) if (b[i] == 'd' && b[i + 1] == 'a' && b[i + 2] == 't' && b[i + 3] == 'a') { o0 = i + 8; break; }
+            var pcm = new short[Math.Max(0, (b.Length - o0) / 2)];
+            Buffer.BlockCopy(b, o0, pcm, 0, pcm.Length * 2);
+            return pcm;
+        }
+
+        static string Ts(double t) => Srt.Ts(t);
+
+        /// <summary>
+        /// Συγχρονισμός: τμήμα Α (πρώτα 10 λεπτά) για τη μετατόπιση και τον λόγο fps, και — για ταινίες >40′ — τμήμα Β (στο 70 %) για να βρεθεί ΚΑΙ η απόκλιση
+        /// ταχύτητας σε όλη την ταινία. Αν η βεβαιότητα είναι χαμηλή δεν αλλάζει τίποτα (μένει ο χειροκίνητος συγχρονισμός Y).
+        /// </summary>
+        async Task RunSync(string video, string sub)
+        {
+            try
+            {
                 Say("Συγχρονισμός υποτίτλων με τον ήχο…");
-                if (!await ExtractAudio(video, wav)) { Say("Αποτυχία εξαγωγής ήχου — δοκίμασε το Y"); return; }
-                string text = File.ReadAllText(sub); var cues = Cues(text);
-                if (cues.Count == 0) { Say("Δεν διαβάστηκαν γραμμές υποτίτλων"); return; }
-                var res = await Task.Run(() => { var sp = Envelope(wav); return sp == null ? ((int, double, double)?)null : Align(sp, cues); });
-                if (res == null || res.Value.Item3 < 0.04) { Say("Χαμηλή βεβαιότητα συγχρονισμού — δεν εφαρμόστηκε (δοκίμασε το Y)"); return; }
-                var (shift, ratio, _) = res.Value;
+                var cues = Srt.Parse(SubFormats.Decode(File.ReadAllBytes(sub), 1252));
+                if (cues.Count < 5) { Say("Δεν διαβάστηκαν αρκετές γραμμές υποτίτλων"); return; }
+                double L = mp.Length > 0 ? mp.Length / 1000.0 : 0, lenA = L > 0 ? Math.Min(600, L) : 600;
+                var pcmA = await ExtractPcm(video, 0, lenA, "1/2");
+                if (pcmA == null) { Say("Αποτυχία εξαγωγής ήχου — δοκίμασε το Y"); return; }
+                var fitA = await Task.Run(() => SpeechAlign.FitFirst(pcmA, PcmRate, 0, cues, 0, 300));
+                if (!fitA.Good) { Say($"Χαμηλή βεβαιότητα συγχρονισμού ({fitA.Score:0.00}) — δεν εφαρμόστηκε (δοκίμασε το Y)"); return; }
+
+                SegmentFit fitB = null; double tA = lenA / 2, tB = 0;
+                if (L > 2400)
+                {
+                    double startB = L * 0.7;
+                    var pcmB = await ExtractPcm(video, startB, 600, "2/2");
+                    if (pcmB != null) { fitB = await Task.Run(() => SpeechAlign.FitSegment(pcmB, PcmRate, startB, cues, fitA.Shift, Math.Max(20, 0.08 * startB), new[] { fitA.Ratio })); tB = startB + 300; }
+                }
+                var sol = SpeechAlign.Combine(fitA, tA, fitB, tB);
+                if (CurPath() != video) return;                                          // ο χρήστης άνοιξε άλλο βίντεο όσο γινόταν η ανάλυση
                 string outp = System.IO.Path.ChangeExtension(sub, null) + ".synced.srt";
-                string fixedText = Regex.Replace(text, @"^.*-->.*$", ln => Regex.Replace(ln.Value, @"(\d+):(\d+):(\d+)[,.](\d+)", m =>
-                    Ts(Sec(Regex.Match(m.Value + " -->  0:0:0,0", @"(\d+):(\d+):(\d+)[,.](\d+)\s*-->\s*(\d+):(\d+):(\d+)[,.](\d+)"), 1) * ratio + shift / 10.0)), RegexOptions.Multiline);
-                File.WriteAllText(outp, fixedText, new UTF8Encoding(true));
+                if (outp.EndsWith(".synced.synced.srt")) outp = outp.Replace(".synced.synced.srt", ".synced.srt");
+                File.WriteAllText(outp, Srt.Write(Srt.Transform(cues, sol.Ratio, sol.Shift)), new UTF8Encoding(true));
                 lastSub = outp; mp.AddSlave(MediaSlaveType.Subtitle, new Uri(outp).AbsoluteUri, true);
-                Say($"Συγχρονισμός: {shift / 10.0:+0.0;-0.0}s, ταχύτητα ×{ratio:0.0000}");
+                Say($"Συγχρονισμός: {sol.Shift:+0.0;-0.0}s" + (Math.Abs(sol.Ratio - 1) > 0.0002 ? $", ταχύτητα ×{sol.Ratio:0.0000}" : "") + $"  (βεβαιότητα {sol.Score:0.00}" + (fitB != null ? ", 2 τμήματα" : "") + ")");
             }
             catch (Exception ex) { Say("Σφάλμα συγχρονισμού: " + ex.Message); }
-            finally { try { File.Delete(wav); } catch { } }
         }
 
         // Χειροκίνητος γρήγορος συγχρονισμός (Y)
@@ -165,7 +163,7 @@ namespace MediaPlayerPro
         {
             var s = lastSub ?? FindSrt(CurPath());
             if (s == null || mp.Length <= 0) { Say("Δεν υπάρχει αρχείο .srt για συγχρονισμό"); return; }
-            var cues = Cues(File.ReadAllText(s)).Select(c => c.s).ToList();
+            var cues = Srt.Parse(SubFormats.Decode(File.ReadAllBytes(s), 1252)).Select(c => c.Start).ToList();
             if (cues.Count == 0) return;
             double heard = mp.Time / 1000.0, shown = heard - mp.SpuDelay / 1e6, nearest = cues.OrderBy(x => Math.Abs(x - shown)).First();
             mp.SetSpuDelay((long)((heard - nearest) * 1e6));

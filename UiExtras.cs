@@ -21,7 +21,6 @@ namespace MediaPlayerPro
             Say(menuShown ? "Μενού: εμφάνιση" : "Μενού: απόκρυψη (Ctrl+M για εμφάνιση)");
         }
 
-        void ShowHelp(int tab) { var w = new HelpWindow { Owner = this, FontFamily = FontFamily };
-            foreach (var k in new[] { "BgBrush", "BarBrush", "FgBrush", "MutedBrush", "AccentBrush", "HoverBrush" }) w.Resources[k] = Resources[k]; w.Tabs.SelectedIndex = tab; w.ShowDialog(); }
+        void ShowHelp(int tab) { var w = new HelpWindow { Owner = this, FontFamily = FontFamily }; w.Tabs.SelectedIndex = tab; w.ShowDialog(); }
     }
 }

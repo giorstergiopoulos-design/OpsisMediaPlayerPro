@@ -84,6 +84,7 @@ namespace MediaPlayerPro
                 case "openurl": { var u = Prompt("Άνοιγμα URL / stream (http, rtsp, mms, udp…)", ""); if (!string.IsNullOrWhiteSpace(u) && u.Contains("://")) AddFiles(new[] { u.Trim() }, true); return true; }
                 case "listfolder": { if (List.SelectedItem is Item it && System.IO.File.Exists(it.Path)) System.Diagnostics.Process.Start("explorer.exe", "/select,\"" + it.Path + "\""); return true; }
                 case "listcopy": { if (List.SelectedItem is Item it) Clipboard.SetText(it.Path); return true; }
+                case "sd0": mp.SetSpuDelay(0); Say("Καθυστέρηση υποτίτλων 0"); return true;
                 case "plup": MoveSelected(-1); return true;
                 case "pldown": MoveSelected(+1); return true;
                 case "snapclip": SnapshotToClipboard(); return true;
@@ -188,7 +189,7 @@ namespace MediaPlayerPro
             var d = new Window
             {
                 Title = "Στατιστικά αναπαραγωγής", Width = 380, Height = 300, Owner = this, WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                Background = Background, ResizeMode = ResizeMode.NoResize
+                ResizeMode = ResizeMode.NoResize
             };
             var tb = new TextBlock { Margin = new Thickness(18), FontSize = 13.5, FontFamily = new System.Windows.Media.FontFamily("Consolas"), TextWrapping = TextWrapping.Wrap };
             tb.SetResourceReference(TextBlock.ForegroundProperty, "FgBrush");
@@ -273,6 +274,8 @@ namespace MediaPlayerPro
                 case Key.B when !ctrl: Do("audiocycle"); return true;
                 case Key.T when !ctrl: Do("remain"); return true;
                 case Key.J when ctrl: Do("stats"); return true;
+                case Key.Z when !ctrl: Do("sd-"); return true;       // υπότιτλοι 100 ms νωρίτερα
+                case Key.X when !ctrl: Do("sd+"); return true;       // υπότιτλοι 100 ms αργότερα
                 case Key.C when ctrl && !shift: Do("snapclip"); return true;
                 case Key.Up when alt: Do("plup"); return true;
                 case Key.Down when alt: Do("pldown"); return true;

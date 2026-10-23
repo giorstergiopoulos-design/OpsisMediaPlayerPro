@@ -1,4 +1,6 @@
 using System;
+using System.Threading.Tasks;
+using MediaPlayerPro.SubCore;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -23,7 +25,7 @@ namespace MediaPlayerPro
         void StartSelfTest()
         {
             var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(4) };
-            t.Tick += (s, e) => { t.Stop(); try { RunSelfTest(); } catch (Exception ex) { File.WriteAllText(SelfTestFile, "SELFTEST CRASHED: " + ex); Environment.Exit(2); } };
+            t.Tick += async (s, e) => { t.Stop(); try { await RunSelfTest(); } catch (Exception ex) { File.WriteAllText(SelfTestFile, "SELFTEST CRASHED: " + ex); Environment.Exit(2); } };
             t.Start();
         }
 
@@ -37,7 +39,7 @@ namespace MediaPlayerPro
                 foreach (var x in Walk(c)) yield return x;
         }
 
-        void RunSelfTest()
+        async Task RunSelfTest()
         {
             var log = new StringBuilder(); int pass = 0, fail = 0, skipped = 0;
             void Report(string name, bool ok, string detail = "") { if (ok) pass++; else fail++; log.AppendLine((ok ? "PASS  " : "FAIL  ") + name + (detail.Length > 0 ? "  " + detail : "")); }
@@ -82,9 +84,45 @@ namespace MediaPlayerPro
             }
             catch (Exception ex) { Report("playback state", false, ex.Message); }
 
+            // 4) ΠΡΑΓΜΑΤΙΚΟΣ συγχρονισμός υποτίτλων: ήχος με «ομιλία» στις γραμμές + 7,3 s, υπότιτλος χωρίς τη μετατόπιση → το .synced.srt πρέπει να ευθυγραμμιστεί
+            try { await SyncSelfTest(Report); }
+            catch (Exception ex) { Report("subtitle sync end-to-end", false, ex.GetType().Name + ": " + ex.Message); }
+
             log.AppendLine($"TOTAL: {pass} passed, {fail} failed, {skipped} skipped");
             File.WriteAllText(SelfTestFile, log.ToString());
             Environment.Exit(fail == 0 ? 0 : 1);
+        }
+
+        async Task SyncSelfTest(Action<string, bool, string> report)
+        {
+            string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "opsis_synctest_" + Guid.NewGuid().ToString("N")); Directory.CreateDirectory(dir);
+            try
+            {
+                string wav = System.IO.Path.Combine(dir, "sync.wav"), srt = System.IO.Path.Combine(dir, "sync.en.srt");
+                const double shift = 7.3; const int rate = 8000, seconds = 300;
+                var rng = new Random(5); var cues = new List<Cue>(); double t = 5;
+                while (t < seconds - 15) { double d = 1.5 + rng.NextDouble() * 2.5; cues.Add(new Cue(t, t + d, "line " + cues.Count)); t += d + 1.0 + rng.NextDouble() * 4.0; }
+                var pcm = new short[rate * seconds];
+                for (int i = 0; i < pcm.Length; i++) pcm[i] = (short)rng.Next(-100, 101);
+                foreach (var c in cues) for (int i = (int)((c.Start + shift) * rate); i < Math.Min(pcm.Length, (int)((c.End + shift) * rate)); i++) pcm[i] = (short)rng.Next(-6000, 6001);
+                using (var fs = File.Create(wav))
+                using (var w = new BinaryWriter(fs))
+                {
+                    w.Write(Encoding.ASCII.GetBytes("RIFF")); w.Write(36 + pcm.Length * 2); w.Write(Encoding.ASCII.GetBytes("WAVEfmt ")); w.Write(16); w.Write((short)1); w.Write((short)1);
+                    w.Write(rate); w.Write(rate * 2); w.Write((short)2); w.Write((short)16); w.Write(Encoding.ASCII.GetBytes("data")); w.Write(pcm.Length * 2);
+                    foreach (var v in pcm) w.Write(v);
+                }
+                File.WriteAllText(srt, Srt.Write(cues), new UTF8Encoding(true));
+                AddFiles(new[] { wav }, true);
+                await Task.Delay(2500);
+                string expect = System.IO.Path.Combine(dir, "sync.en.synced.srt");
+                await RunSync(wav, srt);
+                if (!File.Exists(expect)) { report("subtitle sync end-to-end", false, "no .synced.srt was written (status: " + Status.Text + ")"); return; }
+                var fixedCues = Srt.Parse(File.ReadAllText(expect));
+                double worst = 0; for (int i = 0; i < Math.Min(fixedCues.Count, cues.Count); i++) worst = Math.Max(worst, Math.Abs(fixedCues[i].Start - (cues[i].Start + shift)));
+                report("subtitle sync end-to-end (real LibVLC audio extraction, +" + shift + " s)", fixedCues.Count == cues.Count && worst < 0.2, "cues=" + fixedCues.Count + "/" + cues.Count + ", worst error " + worst.ToString("0.000") + " s; " + Status.Text);
+            }
+            finally { try { Directory.Delete(dir, true); } catch (Exception) { } }
         }
 
         static IEnumerable<MenuItem> Flatten(MenuItem m)

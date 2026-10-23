@@ -3,7 +3,7 @@ setlocal
 cd /d "%~dp0"
 where dotnet >nul 2>nul
 if errorlevel 1 (
-  echo The .NET 8 SDK was not found. Install it from https://dotnet.microsoft.com/download
+  echo The .NET 10 SDK was not found. Install it from https://dotnet.microsoft.com/download/dotnet/10.0
   pause
   exit /b 1
 )
@@ -15,5 +15,5 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
-start "" "%~dp0bin\Release\net8.0-windows\win-x64\publish\OpsisMediaPlayerPro.exe" %*
+start "" "%~dp0bin\Release\net10.0-windows\win-x64\publish\OpsisMediaPlayerPro.exe" %*
 endlocal

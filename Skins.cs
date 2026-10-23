@@ -86,11 +86,12 @@ namespace MediaPlayerPro
             }
             string acc = accentOverride ?? sk.Accent;
             if (mode == "auto" && accentOverride == null) { var c = SystemParameters.WindowGlassColor; acc = $"#{c.R:X2}{c.G:X2}{c.B:X2}"; }
-            void S(string key, string hex) => Resources[key] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
+            void S(string key, string hex) => Application.Current.Resources[key] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));      // επίπεδο εφαρμογής: το βλέπουν ΟΛΑ τα παράθυρα
             try
             {
                 S("BgBrush", sk.Bg); S("BarBrush", sk.Bar); S("FgBrush", sk.Fg); S("MutedBrush", sk.Muted); S("AccentBrush", acc); S("HoverBrush", sk.Hover);
-                Resources["BtnRadius"] = new CornerRadius(sk.Radius);
+                Application.Current.Resources["BtnRadius"] = new CornerRadius(sk.Radius);
+                ThemeChrome.ApplyAll();
                 FontFamily = new System.Windows.Media.FontFamily(string.IsNullOrEmpty(sk.Font) ? DefFont : sk.Font);
                 Directory.CreateDirectory(AppDir);
                 File.WriteAllText(System.IO.Path.Combine(AppDir, "skin.txt"), curSkin);

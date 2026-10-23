@@ -1,6 +1,6 @@
 <#
   Builds everything for a release of Opsis Media Player Pro:
-    dist\app\                                     self-contained publish (.NET 8 + libvlc included)
+    dist\app\                                     self-contained publish (.NET 10 + libvlc included)
     Output\OpsisMediaPlayerPro-<v>.zip            portable zip
     Output\OpsisMediaPlayerPro-Setup.exe          installer (Inno Setup 7; 6.x works too)
     *.sha256 next to each
@@ -15,6 +15,8 @@ $version = ([xml](Get-Content "$root\OpsisMediaPlayerPro.csproj")).Project.Prope
 dotnet build OpsisMediaPlayerPro.csproj -c Release -nologo -v q
 if ($LASTEXITCODE -ne 0) { throw 'Build failed' }
 if (-not $SkipTests) {
+    dotnet test "$root\tests\SubtitleTests" -nologo -v q
+    if ($LASTEXITCODE -ne 0) { throw 'Subtitle unit tests failed' }
     python "$root\tests\audit-menus.py"
     if ($LASTEXITCODE -ne 0) { throw 'Menu audit failed' }
     powershell -NoProfile -ExecutionPolicy Bypass -File "$root\tests\run-selftest.ps1"

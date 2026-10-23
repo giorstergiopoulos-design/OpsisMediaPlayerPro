@@ -6,9 +6,7 @@
         Title="Opsis Media Player Pro" FontFamily="Segoe UI Variable Text, Segoe UI" Icon="app.ico" Width="1180" Height="720" MinWidth="700" MinHeight="420"
         Background="{DynamicResource BgBrush}" AllowDrop="True" Drop="Window_Drop" PreviewKeyDown="Window_KeyDown" Closing="Window_Closing">
   <Window.Resources>
-    <SolidColorBrush x:Key="BgBrush" Color="#111214"/><SolidColorBrush x:Key="BarBrush" Color="#181A1D"/><SolidColorBrush x:Key="FgBrush" Color="#E6E8EB"/>
-    <SolidColorBrush x:Key="MutedBrush" Color="#9AA0A6"/><SolidColorBrush x:Key="AccentBrush" Color="#3B9EFF"/><SolidColorBrush x:Key="HoverBrush" Color="#2A2D33"/>
-    <CornerRadius x:Key="BtnRadius">20</CornerRadius>
+    <!-- Τα χρώματα του θέματος (BgBrush, BarBrush, FgBrush, MutedBrush, AccentBrush, HoverBrush, BtnRadius) ορίζονται στο App.xaml -->
     <Style x:Key="SliderFill" TargetType="RepeatButton"><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RepeatButton"><Border Height="4" CornerRadius="2" Background="{DynamicResource AccentBrush}" VerticalAlignment="Center"/></ControlTemplate></Setter.Value></Setter></Style>
     <Style x:Key="SliderEmpty" TargetType="RepeatButton"><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RepeatButton"><Border Background="Transparent"/></ControlTemplate></Setter.Value></Setter></Style>
     <Style TargetType="Slider"><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Slider">
@@ -247,8 +245,9 @@
       <MenuItem Header="Κανάλι υποτίτλων" x:Name="SubTracks" />
       <MenuItem Header="Ενεργοποίηση / απενεργοποίηση υποτίτλων" Tag="subtoggle" Click="Cmd" />
       <MenuItem Header="Επόμενο κανάλι υποτίτλων" InputGestureText="V" Tag="subcycle" Click="Cmd" />
-      <MenuItem Header="Καθυστέρηση −100ms" Tag="sd-" Click="Cmd" />
-      <MenuItem Header="Καθυστέρηση +100ms" Tag="sd+" Click="Cmd" />
+      <MenuItem Header="Καθυστέρηση −100ms" InputGestureText="Z" Tag="sd-" Click="Cmd" />
+      <MenuItem Header="Καθυστέρηση +100ms" InputGestureText="X" Tag="sd+" Click="Cmd" />
+      <MenuItem Header="Μηδενισμός καθυστέρησης" Tag="sd0" Click="Cmd" />
     </MenuItem>
     <MenuItem Header="Βίντεο">
       <MenuItem Header="Αναλογία εικόνας">

@@ -15,7 +15,6 @@ namespace MediaPlayerPro
         public AudioWindow(MainWindow owner)
         {
             InitializeComponent(); m = owner; Owner = owner; FontFamily = owner.FontFamily;
-            foreach (var k in new[] { "BgBrush", "BarBrush", "FgBrush", "MutedBrush", "AccentBrush", "HoverBrush" }) Resources[k] = owner.Resources[k];
             Build(); BuildChips(); Refresh(); Closed += (s, e) => m.AudioClosed();
         }
 
