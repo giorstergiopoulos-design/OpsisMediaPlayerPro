@@ -1,0 +1,78 @@
+# Opsis Media Player Pro
+
+<p align="center">
+  <strong>Ένας γρήγορος, όμορφος player βίντεο και ήχου με τον κινητήρα του VLC και τις συντομεύσεις του Media Player Classic.</strong><br/>
+  <strong>A fast, good-looking video and audio player on the VLC engine with Media Player Classic shortcuts.</strong>
+</p>
+
+<p align="center">
+  <img alt="Platform" src="https://img.shields.io/badge/platform-Windows%2010%2F11-0078D6?logo=windows&logoColor=white" />
+  <img alt=".NET" src="https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet&logoColor=white" />
+  <img alt="Version" src="https://img.shields.io/badge/version-1.2.0-00B4D8" />
+  <img alt="License" src="https://img.shields.io/badge/license-MIT-green" />
+</p>
+
+*English below / Αγγλικά παρακάτω.*
+
+## Ελληνικά
+
+Το **Opsis Media Player Pro** παίζει σχεδόν κάθε μορφή (mp4, mkv, avi, mov, webm, ts, flac, mp3, opus…), δίκτυο (http, rtsp, udp…), DVD φακέλους και κάμερες. Χρησιμοποιεί τον κινητήρα **LibVLC** και έχει τη διάταξη, τα πλήκτρα και τις επιλογές που περιμένεις από **Media Player Classic / VLC**, με σύγχρονη εμφάνιση.
+
+| Κατηγορία | Τι έχει |
+|---|---|
+| ▶ Αναπαραγωγή | Καρέ-καρέ, ταχύτητα 0,25–4× (`[` `]` `=`), επανάληψη A-B, κεφάλαια και τίτλοι, σελιδοδείκτες, μετάβαση σε χρόνο, χρόνος που απομένει, **μνήμη θέσης** ανά αρχείο, χρονόμετρο ύπνου, ενέργεια μετά το τέλος |
+| 🔊 Ήχος | Equalizer 10 ζωνών με προεπιλογές, preamp, εφέ (Clarity, Ambience, Surround, Dynamic Boost, Bass Boost), κανονικοποίηση έντασης, συμπιεστής, οπτικοποιήσεις, **συσκευή εξόδου**, κανάλια (στερεο, αντίστροφο, αριστερό, δεξί, Dolby), καθυστέρηση ήχου, ένταση έως 200% |
+| 🎞 Βίντεο | Αναλογία εικόνας, περικοπή, zoom, **περιστροφή/αναστροφή**, αποπλεξία, όξυνση, φωτεινότητα/αντίθεση/κορεσμός/gamma, στιγμιότυπο (αρχείο ή πρόχειρο), προσαρμογή παραθύρου στο βίντεο |
+| 💬 Υπότιτλοι | Λήψη από **Podnapisi**, **OpenSubtitles.com** (με δικό σου κλειδί) και Subs4Free, αυτόματος συγχρονισμός με τον ήχο, συγχρονισμός στη γραμμή που ακούγεται, καθυστέρηση, εναλλαγή καναλιού (`V`) |
+| 📂 Λίστα | M3U, ταξινόμηση, μετακίνηση πάνω/κάτω, τυχαία σειρά, επανάληψη λίστας ή αρχείου, διακοπή μετά το τρέχον, πρόσφατα, μενού δεξιού κλικ (φάκελος, αντιγραφή διαδρομής) |
+| 🎨 Εμφάνιση | 16 θέματα, χρώμα έμφασης, δικά σου θέματα `.json`, **κουμπί σκούρας/φωτεινής/αυτόματης λειτουργίας**, στρογγυλεμένα μενού, πλευρικό πάνελ με εξώφυλλο και πληροφορίες ταινίας/σειράς |
+| 🧰 Εργαλεία | Μετατροπή σε MP4/MP3, εξαγωγή κλιπ A-B, στατιστικά αναπαραγωγής (`Ctrl+J`), αποστολή σε Chromecast/DLNA, θυμάται θέση και μέγεθος παραθύρου |
+
+### Συντομεύσεις (οι βασικές — όλες στο `F1`)
+
+`Space` παύση · `←/→` ∓5″ · `Shift+←/→` ∓15″ · `Ctrl+←/→` ∓30″ · `Alt+←/→` ∓1″ · `Ctrl+Shift+←/→` ∓5′ · `↑/↓` ένταση · `M` σίγαση · `F11`/`Enter` πλήρης οθόνη · `[` `]` `=` ταχύτητα · `E` καρέ-καρέ · `L` A-B · `Home`/`End` προηγούμενο/επόμενο · `PgUp`/`PgDn` κεφάλαια · `S` στιγμιότυπο · `Ctrl+C` στιγμιότυπο στο πρόχειρο · `V` υπότιτλοι · `B` κανάλι ήχου · `T` χρόνος · `Ctrl+E` ενισχυτής ήχου · `Ctrl+J` στατιστικά · `Ctrl+Shift+L` σκούρη/φωτεινή/αυτόματη.
+
+### Ιδιωτικότητα — τι επικοινωνεί με το διαδίκτυο
+
+- **Αυτόματη λήψη υποτίτλων** (ενεργή από προεπιλογή): όταν ανοίγεις βίντεο χωρίς αρχείο υποτίτλων, στέλνεται ένα καθαρισμένο όνομα (και, για το OpenSubtitles, ένα hash του αρχείου) στο Podnapisi/OpenSubtitles. Για αρχεία **ήχου** δεν γίνεται αναζήτηση.
+- **Πληροφορίες ταινίας/σειράς** (ενεργές από προεπιλογή): ο καθαρισμένος τίτλος αποστέλλεται σε TVmaze, iTunes και Wikipedia για εξώφυλλο και περιγραφή.
+- Και τα δύο κλείνουν (Ρυθμίσεις → Υπότιτλοι → Ρυθμίσεις υποτίτλων, και Προβολή → Πλευρικό πάνελ). Δεν υπάρχει τηλεμετρία.
+
+### Εγκατάσταση
+
+Από τα [Releases](../../releases/latest): `OpsisMediaPlayerPro-Setup.exe` (χωρίς admin, ελληνικά/αγγλικά) ή το zip `OpsisMediaPlayerPro-<έκδοση>.zip` (φορητό — κράτα όλον τον φάκελο μαζί). Το πακέτο είναι **αυτόνομο** (περιέχει το .NET και το libvlc, γι' αυτό είναι μεγάλο) και δεν χρειάζεται εγκατάσταση .NET.
+
+### Χτίσιμο και δοκιμές
+
+```powershell
+powershell -File build.ps1              # self-test + publish + zip + installer (Inno Setup 7)
+powershell -File tests\run-selftest.ps1 # μόνο το self-test
+```
+
+Απαιτείται: [.NET 8 SDK](https://dotnet.microsoft.com/download), [Inno Setup 7](https://jrsoftware.org/isdl.php) για τον installer.
+
+**Δοκιμές:** το `OpsisMediaPlayerPro.exe --selftest <αρχείο>` εκτελεί **κάθε κουμπί και κάθε στοιχείο μενού** σε πραγματική αναπαραγωγή, ανοίγει τα δυναμικά μενού και εφαρμόζει όλα τα θέματα· αναφέρει ως FAIL κάθε εντολή που ρίχνει εξαίρεση ή αφήνει τον player σε κατάσταση σφάλματος και γράφει το `%TEMP%\opsis_mediaplayer_selftest.txt`. Ένα στατικό script (`tests\audit-menus.py`) ελέγχει ότι κάθε `Tag` του μενού έχει handler. Εξαιρούνται από το self-test όσα ανοίγουν modal παράθυρο, δίκτυο ή κάνουν κάτι μη αναστρέψιμο (άνοιγμα αρχείου, μετατροπή, λήψη υποτίτλων, έξοδος…). Δεν ελέγχεται αυτόματα το **οπτικό αποτέλεσμα** (π.χ. ότι η περιστροφή φαίνεται σωστά στην εικόνα).
+
+## English
+
+**Opsis Media Player Pro** plays almost any format (mp4, mkv, avi, mov, webm, ts, flac, mp3, opus…), network streams (http, rtsp, udp…), DVD folders and capture devices. It is built on **LibVLC** and offers the layout, keys and options you expect from **Media Player Classic / VLC** with a modern look.
+
+Highlights: frame step, speed 0.25–4×, A-B loop, chapters/titles, bookmarks, per-file resume, 10-band equalizer and effects, output-device and channel selection, aspect/crop/zoom/rotate/flip/deinterlace/colour adjustments, subtitle download (Podnapisi, OpenSubtitles.com with your key, Subs4Free) with audio-based sync, M3U playlists, 16 themes with a light/dark/auto button, MP4/MP3 conversion, A-B clip export, playback statistics (`Ctrl+J`), Chromecast/DLNA, and window position memory.
+
+**Privacy:** automatic subtitle download and online movie/series information are **on by default** and send a cleaned-up title derived from the file name (and, for OpenSubtitles, a file hash) to Podnapisi/OpenSubtitles, TVmaze, iTunes and Wikipedia. Audio files are never searched. Both can be turned off in the settings. No telemetry.
+
+**Install:** download `OpsisMediaPlayerPro-Setup.exe` (no admin) or the portable zip from [Releases](../../releases/latest). The package is self-contained (.NET + libvlc included, hence its size).
+
+**Tests:** `OpsisMediaPlayerPro.exe --selftest <file>` runs every button and menu item against a real playback, opens the dynamic menus and applies every theme; anything that throws or leaves the player in an error state is reported as FAIL. A static script (`tests\audit-menus.py`) checks that every menu `Tag` has a handler. Commands that open modal dialogs, use the network or are irreversible are skipped, and the visual result of a command is not verified automatically.
+
+## Structure
+
+```
+*.cs / *.xaml        the WPF application (MainWindow + feature partials: Extras, Features2, McFeatures, Subtitles, SubProviders, Meta, Skins, AudioFx, SelfTest)
+Skins/               example theme files (.json)
+installer/           Inno Setup 7 script (+ Greek.isl)
+tests/               self-test runner and the static menu audit
+build.ps1            self-test, publish, zip, installer
+```
+
+License: MIT (see [LICENSE](LICENSE)); libvlc and LibVLCSharp are LGPL-2.1+ and are loaded as separate libraries.

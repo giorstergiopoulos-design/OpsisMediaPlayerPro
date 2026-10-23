@@ -1,0 +1,65 @@
+<Window x:Class="MediaPlayerPro.AudioWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Βελτίωση ήχου" Width="820" Height="640" MinWidth="740" MinHeight="560" WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{DynamicResource BgBrush}">
+  <Window.Resources>
+    <Style x:Key="HFill" TargetType="RepeatButton"><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RepeatButton"><Border Height="4" CornerRadius="2" Background="{DynamicResource AccentBrush}" VerticalAlignment="Center"/></ControlTemplate></Setter.Value></Setter></Style>
+    <Style x:Key="VFill" TargetType="RepeatButton"><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RepeatButton"><Border Width="4" CornerRadius="2" Background="{DynamicResource AccentBrush}" HorizontalAlignment="Center"/></ControlTemplate></Setter.Value></Setter></Style>
+    <Style x:Key="Empty" TargetType="RepeatButton"><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RepeatButton"><Border Background="Transparent"/></ControlTemplate></Setter.Value></Setter></Style>
+    <ControlTemplate x:Key="HT" TargetType="Slider">
+      <Grid Height="22" Background="Transparent">
+        <Border Height="4" CornerRadius="2" Background="{DynamicResource HoverBrush}" VerticalAlignment="Center"/>
+        <Track x:Name="PART_Track">
+          <Track.DecreaseRepeatButton><RepeatButton Command="Slider.DecreaseLarge" Style="{StaticResource HFill}"/></Track.DecreaseRepeatButton>
+          <Track.IncreaseRepeatButton><RepeatButton Command="Slider.IncreaseLarge" Style="{StaticResource Empty}"/></Track.IncreaseRepeatButton>
+          <Track.Thumb><Thumb Width="14" Height="14"><Thumb.Template><ControlTemplate TargetType="Thumb"><Ellipse Fill="{DynamicResource FgBrush}" Stroke="{DynamicResource AccentBrush}" StrokeThickness="2"/></ControlTemplate></Thumb.Template></Thumb></Track.Thumb>
+        </Track>
+      </Grid>
+    </ControlTemplate>
+    <ControlTemplate x:Key="VT" TargetType="Slider">
+      <Grid Width="26" Background="Transparent">
+        <Border Width="4" CornerRadius="2" Background="{DynamicResource HoverBrush}" HorizontalAlignment="Center"/>
+        <Track x:Name="PART_Track">
+          <Track.DecreaseRepeatButton><RepeatButton Command="Slider.DecreaseLarge" Style="{StaticResource VFill}"/></Track.DecreaseRepeatButton>
+          <Track.IncreaseRepeatButton><RepeatButton Command="Slider.IncreaseLarge" Style="{StaticResource Empty}"/></Track.IncreaseRepeatButton>
+          <Track.Thumb><Thumb Width="16" Height="16"><Thumb.Template><ControlTemplate TargetType="Thumb"><Ellipse Fill="{DynamicResource FgBrush}" Stroke="{DynamicResource AccentBrush}" StrokeThickness="2"/></ControlTemplate></Thumb.Template></Thumb></Track.Thumb>
+        </Track>
+      </Grid>
+    </ControlTemplate>
+    <Style TargetType="Slider"><Setter Property="Template" Value="{StaticResource HT}"/><Setter Property="IsMoveToPointEnabled" Value="True"/></Style>
+    <Style x:Key="VS" TargetType="Slider"><Setter Property="Orientation" Value="Vertical"/><Setter Property="Template" Value="{StaticResource VT}"/><Setter Property="IsMoveToPointEnabled" Value="True"/></Style>
+    <Style x:Key="Chip" TargetType="RadioButton">
+      <Setter Property="Foreground" Value="{DynamicResource FgBrush}"/><Setter Property="Margin" Value="0,0,6,6"/><Setter Property="Focusable" Value="False"/>
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RadioButton">
+        <Border x:Name="b" CornerRadius="14" Padding="13,6" Background="{DynamicResource HoverBrush}"><ContentPresenter/></Border>
+        <ControlTemplate.Triggers><Trigger Property="IsChecked" Value="True"><Setter TargetName="b" Property="Background" Value="{DynamicResource AccentBrush}"/></Trigger></ControlTemplate.Triggers>
+      </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="Btn" TargetType="Button">
+      <Setter Property="Foreground" Value="{DynamicResource FgBrush}"/><Setter Property="Margin" Value="8,0,0,0"/><Setter Property="Focusable" Value="False"/>
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+        <Border x:Name="b" CornerRadius="8" Padding="14,7" Background="{DynamicResource HoverBrush}"><ContentPresenter HorizontalAlignment="Center"/></Border>
+        <ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="b" Property="Background" Value="{DynamicResource AccentBrush}"/></Trigger></ControlTemplate.Triggers>
+      </ControlTemplate></Setter.Value></Setter>
+    </Style>
+  </Window.Resources>
+  <Grid Margin="22,16,22,18">
+    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+    <DockPanel>
+      <CheckBox x:Name="OnBox" DockPanel.Dock="Right" Content="Ενεργό" Foreground="{DynamicResource FgBrush}" VerticalAlignment="Center" Checked="On_Changed" Unchecked="On_Changed"/>
+      <TextBlock Text="Βελτίωση ήχου" FontSize="21" FontWeight="SemiBold" Foreground="{DynamicResource FgBrush}"/>
+    </DockPanel>
+    <WrapPanel x:Name="Chips" Grid.Row="1" Margin="0,14,0,6"/>
+    <UniformGrid x:Name="Effects" Grid.Row="2" Columns="5" Margin="0,10,0,6"/>
+    <UniformGrid x:Name="Bands" Grid.Row="3" Columns="11" Margin="0,12,0,0"/>
+    <DockPanel Grid.Row="4" Margin="0,10,0,0">
+      <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+        <Button Content="Επαναφορά" Style="{StaticResource Btn}" Click="Reset_Click"/>
+        <Button Content="Αποθήκευση προεπιλογής…" Style="{StaticResource Btn}" Click="Save_Click"/>
+        <Button Content="Διαγραφή προεπιλογής" Style="{StaticResource Btn}" Click="Delete_Click"/>
+        <Button Content="Κλείσιμο" Style="{StaticResource Btn}" Click="Close_Click"/>
+      </StackPanel>
+      <TextBlock x:Name="Note" Foreground="{DynamicResource MutedBrush}" FontSize="11" TextWrapping="Wrap" VerticalAlignment="Center" Margin="0,0,16,0"
+                 Text="Clarity, Bass Boost και EQ αλλάζουν ζωντανά. Ambience, Surround και Dynamic Boost επανεκκινούν στιγμιαία την αναπαραγωγή."/>
+    </DockPanel>
+  </Grid>
+</Window>

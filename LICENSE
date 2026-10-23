@@ -1,0 +1,44 @@
+This app is distributed FREE as open-source software, under the MIT License. You are free to use,
+modify, and redistribute it.
+
+IMPORTANT - DISCLAIMER: The software is provided "AS IS", without warranty of any kind. The author
+bears NO liability for any damage or data loss that may result from using the app. The conversion
+and export features write new files only; they never modify your originals. Use is at your own risk.
+
+----------------------------------------------------------------------
+
+MIT License
+
+Copyright (c) 2026 Opsis Team
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+associated documentation files (the "Software"), to deal in the Software without restriction,
+including without limitation the rights to use, copy, modify, merge, publish, distribute,
+sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or
+substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+----------------------------------------------------------------------
+
+Third-Party Components
+
+- LibVLC / VideoLAN.LibVLC.Windows (videolan.org)
+  GNU Lesser General Public License v2.1 or later. The app loads the unmodified libvlc libraries
+  that ship next to it (dynamic linking); you can replace them with your own build of libvlc.
+  Source code: code.videolan.org/videolan/vlc
+
+- LibVLCSharp / LibVLCSharp.WPF (github.com/videolan/libvlcsharp)
+  GNU Lesser General Public License v2.1 or later.
+
+- Online services contacted at runtime: Podnapisi and OpenSubtitles.com (subtitle search; OpenSubtitles needs
+  your own key) and online movie/series information. Automatic subtitle download and online information are
+  ON by default and send a cleaned-up title derived from the file name (TVmaze, iTunes, Wikipedia, Podnapisi, OpenSubtitles) and, for OpenSubtitles, a hash of the file; both can be switched off
+  (Settings > Subtitles > subtitle settings, and View > side panel > online information).

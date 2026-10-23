@@ -1,0 +1,381 @@
+﻿<Window x:Class="MediaPlayerPro.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vlc="clr-namespace:LibVLCSharp.WPF;assembly=LibVLCSharp.WPF"
+        xmlns:local="clr-namespace:MediaPlayerPro"
+        Title="Opsis Media Player Pro" FontFamily="Segoe UI Variable Text, Segoe UI" Icon="app.ico" Width="1180" Height="720" MinWidth="700" MinHeight="420"
+        Background="{DynamicResource BgBrush}" AllowDrop="True" Drop="Window_Drop" PreviewKeyDown="Window_KeyDown" Closing="Window_Closing">
+  <Window.Resources>
+    <SolidColorBrush x:Key="BgBrush" Color="#111214"/><SolidColorBrush x:Key="BarBrush" Color="#181A1D"/><SolidColorBrush x:Key="FgBrush" Color="#E6E8EB"/>
+    <SolidColorBrush x:Key="MutedBrush" Color="#9AA0A6"/><SolidColorBrush x:Key="AccentBrush" Color="#3B9EFF"/><SolidColorBrush x:Key="HoverBrush" Color="#2A2D33"/>
+    <CornerRadius x:Key="BtnRadius">20</CornerRadius>
+    <Style x:Key="SliderFill" TargetType="RepeatButton"><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RepeatButton"><Border Height="4" CornerRadius="2" Background="{DynamicResource AccentBrush}" VerticalAlignment="Center"/></ControlTemplate></Setter.Value></Setter></Style>
+    <Style x:Key="SliderEmpty" TargetType="RepeatButton"><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RepeatButton"><Border Background="Transparent"/></ControlTemplate></Setter.Value></Setter></Style>
+    <Style TargetType="Slider"><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Slider">
+      <Grid Height="20" Background="Transparent">
+        <Border Height="4" CornerRadius="2" Background="{DynamicResource HoverBrush}" VerticalAlignment="Center"/>
+        <Track x:Name="PART_Track">
+          <Track.DecreaseRepeatButton><RepeatButton Command="Slider.DecreaseLarge" Style="{StaticResource SliderFill}"/></Track.DecreaseRepeatButton>
+          <Track.IncreaseRepeatButton><RepeatButton Command="Slider.IncreaseLarge" Style="{StaticResource SliderEmpty}"/></Track.IncreaseRepeatButton>
+          <Track.Thumb><Thumb Width="14" Height="14"><Thumb.Template><ControlTemplate TargetType="Thumb"><Ellipse Fill="{DynamicResource FgBrush}" Stroke="{DynamicResource AccentBrush}" StrokeThickness="2"/></ControlTemplate></Thumb.Template></Thumb></Track.Thumb>
+        </Track>
+      </Grid></ControlTemplate></Setter.Value></Setter></Style>
+    <Style x:Key="Ico" TargetType="Button">
+      <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/><Setter Property="FontSize" Value="18"/>
+      <Setter Property="Foreground" Value="{DynamicResource FgBrush}"/><Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Width" Value="40"/><Setter Property="Height" Value="40"/><Setter Property="Focusable" Value="False"/>
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+        <Border x:Name="b" CornerRadius="{DynamicResource BtnRadius}" Background="{TemplateBinding Background}"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+        <ControlTemplate.Triggers>
+          <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="b" Property="Background" Value="{DynamicResource HoverBrush}"/></Trigger>
+          <Trigger Property="IsPressed" Value="True"><Setter TargetName="b" Property="Background" Value="{DynamicResource AccentBrush}"/></Trigger>
+        </ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <!-- ======== Μενού: στρογγυλεμένα αναδυόμενα με σκιά, hover χρώματος θέματος, τσεκ, βέλος υπομενού, στοιχισμένες συντομεύσεις ======== -->
+    <DropShadowEffect x:Key="MenuShadow" BlurRadius="16" ShadowDepth="3" Direction="270" Opacity="0.55" Color="Black"/>
+    <Style x:Key="MenuSep" TargetType="Separator"><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Separator">
+      <Border Height="1" Margin="10,5" Background="{DynamicResource MutedBrush}" Opacity="0.28"/></ControlTemplate></Setter.Value></Setter></Style>
+    <Style TargetType="Separator" BasedOn="{StaticResource MenuSep}"/>
+
+    <ControlTemplate x:Key="TopItemT" TargetType="MenuItem">
+      <Border x:Name="Bd" CornerRadius="6" Margin="2,3" Padding="11,4" Background="Transparent">
+        <ContentPresenter ContentSource="Header" RecognizesAccessKey="True" VerticalAlignment="Center"/></Border>
+      <ControlTemplate.Triggers>
+        <Trigger Property="IsHighlighted" Value="True"><Setter TargetName="Bd" Property="Background" Value="{DynamicResource HoverBrush}"/></Trigger>
+        <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.45"/></Trigger>
+      </ControlTemplate.Triggers></ControlTemplate>
+
+    <ControlTemplate x:Key="TopHeaderT" TargetType="MenuItem">
+      <Grid>
+        <Border x:Name="Bd" CornerRadius="6" Margin="2,3" Padding="11,4" Background="Transparent">
+          <ContentPresenter ContentSource="Header" RecognizesAccessKey="True" VerticalAlignment="Center"/></Border>
+        <Popup x:Name="PART_Popup" Placement="Bottom" IsOpen="{TemplateBinding IsSubmenuOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Fade" HorizontalOffset="-12" VerticalOffset="-4">
+          <Border Margin="12,6,16,18" Background="{DynamicResource BarBrush}" BorderBrush="{DynamicResource HoverBrush}" BorderThickness="1" CornerRadius="10" Padding="5" Effect="{StaticResource MenuShadow}" SnapsToDevicePixels="True">
+            <ScrollViewer CanContentScroll="True" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled"><ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle" Grid.IsSharedSizeScope="True"/></ScrollViewer>
+          </Border>
+        </Popup>
+      </Grid>
+      <ControlTemplate.Triggers>
+        <Trigger Property="IsHighlighted" Value="True"><Setter TargetName="Bd" Property="Background" Value="{DynamicResource HoverBrush}"/></Trigger>
+        <Trigger Property="IsSubmenuOpen" Value="True"><Setter TargetName="Bd" Property="Background" Value="{DynamicResource HoverBrush}"/></Trigger>
+      </ControlTemplate.Triggers></ControlTemplate>
+
+    <ControlTemplate x:Key="SubItemT" TargetType="MenuItem">
+      <Border x:Name="Bd" CornerRadius="6" Margin="0,1" Padding="8,6,10,6" Background="Transparent" SnapsToDevicePixels="True">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="22"/><ColumnDefinition Width="*" MinWidth="130"/><ColumnDefinition Width="Auto" SharedSizeGroup="Gesture"/><ColumnDefinition Width="16"/>
+          </Grid.ColumnDefinitions>
+          <Path x:Name="Tick" Visibility="Collapsed" Data="M0,5 L4,9 L11,1" Stroke="{DynamicResource AccentBrush}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="3,0,0,0"/>
+          <ContentPresenter Grid.Column="1" ContentSource="Header" RecognizesAccessKey="True" VerticalAlignment="Center"/>
+          <TextBlock Grid.Column="2" Text="{TemplateBinding InputGestureText}" Margin="26,0,0,0" FontSize="11.5" Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center"/>
+        </Grid>
+      </Border>
+      <ControlTemplate.Triggers>
+        <Trigger Property="IsChecked" Value="True"><Setter TargetName="Tick" Property="Visibility" Value="Visible"/></Trigger>
+        <Trigger Property="IsHighlighted" Value="True"><Setter TargetName="Bd" Property="Background" Value="{DynamicResource HoverBrush}"/></Trigger>
+        <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.45"/></Trigger>
+      </ControlTemplate.Triggers></ControlTemplate>
+
+    <ControlTemplate x:Key="SubHeaderT" TargetType="MenuItem">
+      <Grid>
+        <Border x:Name="Bd" CornerRadius="6" Margin="0,1" Padding="8,6,10,6" Background="Transparent" SnapsToDevicePixels="True">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="22"/><ColumnDefinition Width="*" MinWidth="130"/><ColumnDefinition Width="Auto" SharedSizeGroup="Gesture"/><ColumnDefinition Width="16"/>
+            </Grid.ColumnDefinitions>
+            <ContentPresenter Grid.Column="1" ContentSource="Header" RecognizesAccessKey="True" VerticalAlignment="Center"/>
+            <Path Grid.Column="3" Data="M0,0 L4,4 L0,8" Stroke="{DynamicResource MutedBrush}" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+          </Grid>
+        </Border>
+        <Popup x:Name="PART_Popup" Placement="Right" IsOpen="{TemplateBinding IsSubmenuOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Fade" HorizontalOffset="-6" VerticalOffset="-12">
+          <Border Margin="12,10,16,18" Background="{DynamicResource BarBrush}" BorderBrush="{DynamicResource HoverBrush}" BorderThickness="1" CornerRadius="10" Padding="5" Effect="{StaticResource MenuShadow}" SnapsToDevicePixels="True">
+            <ScrollViewer CanContentScroll="True" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled"><ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle" Grid.IsSharedSizeScope="True"/></ScrollViewer>
+          </Border>
+        </Popup>
+      </Grid>
+      <ControlTemplate.Triggers>
+        <Trigger Property="IsHighlighted" Value="True"><Setter TargetName="Bd" Property="Background" Value="{DynamicResource HoverBrush}"/></Trigger>
+        <Trigger Property="IsSubmenuOpen" Value="True"><Setter TargetName="Bd" Property="Background" Value="{DynamicResource HoverBrush}"/></Trigger>
+        <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.45"/></Trigger>
+      </ControlTemplate.Triggers></ControlTemplate>
+
+    <Style TargetType="Menu"><Setter Property="Background" Value="{DynamicResource BarBrush}"/><Setter Property="Foreground" Value="{DynamicResource FgBrush}"/><Setter Property="FontSize" Value="13"/>
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Menu">
+        <Border Background="{TemplateBinding Background}" Padding="6,2"><StackPanel IsItemsHost="True" Orientation="Horizontal" KeyboardNavigation.DirectionalNavigation="Cycle"/></Border>
+      </ControlTemplate></Setter.Value></Setter></Style>
+    <Style TargetType="MenuItem">
+      <Setter Property="Foreground" Value="{DynamicResource FgBrush}"/><Setter Property="FontSize" Value="13"/><Setter Property="Template" Value="{StaticResource SubItemT}"/>
+      <Style.Triggers>
+        <Trigger Property="Role" Value="TopLevelHeader"><Setter Property="Template" Value="{StaticResource TopHeaderT}"/></Trigger>
+        <Trigger Property="Role" Value="TopLevelItem"><Setter Property="Template" Value="{StaticResource TopItemT}"/></Trigger>
+        <Trigger Property="Role" Value="SubmenuHeader"><Setter Property="Template" Value="{StaticResource SubHeaderT}"/></Trigger>
+      </Style.Triggers>
+    </Style>
+    <Style TargetType="ContextMenu"><Setter Property="Foreground" Value="{DynamicResource FgBrush}"/><Setter Property="HasDropShadow" Value="False"/>
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ContextMenu">
+        <Border Margin="12" Background="{DynamicResource BarBrush}" BorderBrush="{DynamicResource HoverBrush}" BorderThickness="1" CornerRadius="10" Padding="5" Effect="{StaticResource MenuShadow}" SnapsToDevicePixels="True">
+          <ItemsPresenter Grid.IsSharedSizeScope="True"/></Border>
+      </ControlTemplate></Setter.Value></Setter></Style>
+    <Style x:Key="T" TargetType="TextBlock"><Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/><Setter Property="FontSize" Value="12"/><Setter Property="VerticalAlignment" Value="Center"/></Style>
+  </Window.Resources>
+  <Grid>
+    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+
+    <Menu x:Name="MenuBar" MenuItem.SubmenuOpened="Menu_Opened">
+  <Menu.LayoutTransform>
+    <ScaleTransform ScaleY="1" />
+  </Menu.LayoutTransform>
+  <MenuItem Header="_Αρχείο">
+    <MenuItem Header="Άνοιγμα αρχείων…" InputGestureText="Ctrl+O" Click="Open_Click" />
+    <MenuItem Header="Άνοιγμα φακέλου…" Click="OpenFolder_Click" />
+    <MenuItem Header="Άνοιγμα URL / stream…" Tag="openurl" Click="Cmd" />
+    <MenuItem Header="Άνοιγμα URL / stream από πρόχειρο" Tag="stream" Click="Cmd" />
+    <MenuItem Header="Άνοιγμα δίσκου DVD (φάκελος/μονάδα)…" Tag="dvd" Click="Cmd" />
+    <MenuItem Header="Συσκευή λήψης (webcam)" Tag="cam" Click="Cmd" />
+    <MenuItem Header="Πρόσφατα αρχεία" x:Name="RecentMenu" />
+    <MenuItem Header="Μετατροπή / Εξαγωγή">
+      <MenuItem Header="Μετατροπή σε MP4 (H.264/AAC)…" Tag="cv:mp4" Click="Cmd" />
+      <MenuItem Header="Εξαγωγή ήχου σε MP3…" Tag="cv:mp3" Click="Cmd" />
+      <MenuItem Header="Εξαγωγή κλιπ A-B (χωρίς απώλεια)…" Tag="cv:clip" Click="Cmd" />
+    </MenuItem>
+    <MenuItem Header="Αποθήκευση λίστας (M3U)…" Tag="savepl" Click="Cmd" />
+    <MenuItem Header="Φόρτωση λίστας (M3U)…" Tag="loadpl" Click="Cmd" />
+    <MenuItem Header="Ιδιότητες πολυμέσου (codec, ανάλυση, bitrate)…" InputGestureText="Ctrl+I" Tag="info" Click="Cmd" />
+    <MenuItem Header="Έξοδος" InputGestureText="Ctrl+Q" Tag="exit" Click="Cmd" />
+  </MenuItem>
+  <MenuItem Header="_Αναπαραγωγή">
+    <MenuItem Header="Αναπαραγωγή / Παύση" InputGestureText="Space" Tag="pp" Click="Cmd" />
+    <MenuItem Header="Διακοπή" Tag="stop" Click="Cmd" />
+    <MenuItem Header="Καρέ-καρέ" InputGestureText="E" Tag="frame" Click="Cmd" />
+    <MenuItem Header="Προηγούμενο / Επόμενο κεφάλαιο" InputGestureText="PgUp/PgDn" Tag="chnext" Click="Cmd" />
+    <MenuItem Header="Μετάβαση σε χρόνο…" InputGestureText="Ctrl+G" Tag="goto" Click="Cmd" />
+    <MenuItem Header="Προσθήκη σελιδοδείκτη" InputGestureText="Ctrl+B" Tag="bm" Click="Cmd" />
+    <MenuItem Header="Σελιδοδείκτες" x:Name="BookmarkMenu" />
+    <MenuItem Header="Επανάληψη A-B" InputGestureText="L" Tag="ab" Click="Cmd" />
+    <MenuItem Header="Ταχύτητα">
+      <MenuItem Header="0.5×" Tag="sp:0.5" Click="Cmd" />
+      <MenuItem Header="0.75×" Tag="sp:0.75" Click="Cmd" />
+      <MenuItem Header="1×" Tag="sp:1" Click="Cmd" />
+      <MenuItem Header="1.25×" Tag="sp:1.25" Click="Cmd" />
+      <MenuItem Header="1.5×" Tag="sp:1.5" Click="Cmd" />
+      <MenuItem Header="2×" Tag="sp:2" Click="Cmd" />
+      <MenuItem Header="4×" Tag="sp:4" Click="Cmd" />
+    </MenuItem>
+    <MenuItem Header="Επανάληψη λίστας" IsCheckable="True" x:Name="LoopItem" />
+    <MenuItem Header="Τυχαία σειρά" IsCheckable="True" x:Name="ShuffleItem" />
+    <MenuItem Header="Επανάληψη τρέχοντος αρχείου" IsCheckable="True" x:Name="RepeatOneItem" />
+    <MenuItem Header="Διακοπή μετά το τρέχον αρχείο" IsCheckable="True" x:Name="StopAfterItem" Tag="stopafter" Click="Cmd" />
+    <MenuItem Header="Προηγούμενο αρχείο" InputGestureText="Home" Tag="prevfile" Click="Cmd" />
+    <MenuItem Header="Επόμενο αρχείο" InputGestureText="End" Tag="nextfile" Click="Cmd" />
+    <MenuItem Header="Τίτλοι (DVD/Blu-ray)" x:Name="TitleMenu" />
+    <MenuItem Header="Κεφάλαια" x:Name="ChapterMenu" />
+    <MenuItem Header="Κανονική ταχύτητα" InputGestureText="=" Tag="speed1" Click="Cmd" />
+    <MenuItem Header="Χρόνος: τρέχων / απομένων" InputGestureText="T" Tag="remain" Click="Cmd" />
+    <MenuItem Header="Στατιστικά αναπαραγωγής" InputGestureText="Ctrl+J" Tag="stats" Click="Cmd" />
+    <MenuItem Header="Μετά την αναπαραγωγή">
+      <MenuItem Header="Καμία ενέργεια" Tag="after:none" Click="Cmd" />
+      <MenuItem Header="Έξοδος εφαρμογής" Tag="after:exit" Click="Cmd" />
+      <MenuItem Header="Τερματισμός υπολογιστή" Tag="after:shutdown" Click="Cmd" />
+    </MenuItem>
+    <MenuItem Header="Χρονόμετρο ύπνου">
+      <MenuItem Header="15 λεπτά" Tag="sleep:15" Click="Cmd" />
+      <MenuItem Header="30 λεπτά" Tag="sleep:30" Click="Cmd" />
+      <MenuItem Header="60 λεπτά" Tag="sleep:60" Click="Cmd" />
+      <MenuItem Header="Ακύρωση" Tag="sleep:0" Click="Cmd" />
+    </MenuItem>
+  </MenuItem>
+  <MenuItem Header="_Προβολή">
+    <MenuItem Header="Πλήρης οθόνη" InputGestureText="F11" Tag="full" Click="Cmd" />
+    <MenuItem Header="Εμφάνιση / απόκρυψη μενού" InputGestureText="Ctrl+M" Tag="menu" Click="Cmd" />
+    <MenuItem Header="Ελάχιστη προβολή" Tag="minimal" Click="Cmd" />
+    <MenuItem Header="Πάντα στο προσκήνιο" InputGestureText="Ctrl+T" Tag="top" Click="Cmd" />
+    <MenuItem Header="Στιγμιότυπο" InputGestureText="S" Tag="snap" Click="Cmd" />
+    <MenuItem Header="Στιγμιότυπο στο πρόχειρο" InputGestureText="Ctrl+C" Tag="snapclip" Click="Cmd" />
+    <MenuItem Header="Αποστολή σε συσκευή (Chromecast/DLNA)" x:Name="RendererMenu" />
+    <MenuItem Header="Πλευρικό πάνελ (λίστα και πληροφορίες)">
+        <MenuItem Header="Εμφάνιση / απόκρυψη τώρα" InputGestureText="P" Tag="list" Click="Cmd" />
+        <MenuItem x:Name="SideAuto" Header="Αυτόματο (ανοίγει με hover)" Tag="side:auto" Click="Cmd" />
+        <MenuItem x:Name="SidePin" Header="Πάντα ανοιχτό" Tag="side:pin" Click="Cmd" />
+        <MenuItem x:Name="SideHide" Header="Κρυφό" Tag="side:hide" Click="Cmd" />
+        <MenuItem x:Name="MetaToggle" Header="Πληροφορίες ταινίας/σειράς από το διαδίκτυο" IsCheckable="True" Tag="side:meta" Click="Cmd" />
+      </MenuItem>
+    <MenuItem Header="Ταξινόμηση λίστας κατά όνομα" Tag="plsort" Click="Cmd" />
+    <MenuItem Header="Μετακίνηση επιλεγμένου πάνω" InputGestureText="Alt+↑" Tag="plup" Click="Cmd" />
+    <MenuItem Header="Μετακίνηση επιλεγμένου κάτω" InputGestureText="Alt+↓" Tag="pldown" Click="Cmd" />
+    <MenuItem Header="Αφαίρεση επιλεγμένου από τη λίστα" InputGestureText="Del" Tag="plrem" Click="Cmd" />
+    <MenuItem Header="Καθαρισμός λίστας" Tag="plclear" Click="Cmd" />
+  </MenuItem>
+  <MenuItem Header="_Ρυθμίσεις">
+    <MenuItem Header="Ήχος">
+      <MenuItem Header="Κανάλι ήχου" x:Name="AudioTracks" />
+      <MenuItem Header="Συσκευή εξόδου ήχου" x:Name="AudioDevices" />
+      <MenuItem Header="Κανάλια (στερεο / Dolby)">
+        <MenuItem Header="Στερεοφωνικό" Tag="ch:stereo" Click="Cmd" />
+        <MenuItem Header="Αντίστροφο στερεοφωνικό" Tag="ch:rstereo" Click="Cmd" />
+        <MenuItem Header="Μόνο αριστερό" Tag="ch:left" Click="Cmd" />
+        <MenuItem Header="Μόνο δεξί" Tag="ch:right" Click="Cmd" />
+        <MenuItem Header="Dolby Surround" Tag="ch:dolby" Click="Cmd" />
+      </MenuItem>
+      <MenuItem Header="Εναλλαγή καναλιού ήχου" InputGestureText="B" Tag="audiocycle" Click="Cmd" />
+      <MenuItem Header="Καθυστέρηση ήχου −50ms" Tag="ad-" Click="Cmd" />
+      <MenuItem Header="Καθυστέρηση ήχου +50ms" Tag="ad+" Click="Cmd" />
+      <MenuItem Header="Ενισχυτής ήχου (Equalizer και εφέ)…" InputGestureText="Ctrl+E" Tag="fx" Click="Cmd" />
+        <MenuItem Header="Προεπιλογές ήχου" x:Name="EqMenu" />
+      <MenuItem Header="Κανονικοποίηση έντασης" IsCheckable="True" Tag="af:norm" Click="Cmd" />
+      <MenuItem Header="Συμπιεστής δυναμικής περιοχής" IsCheckable="True" Tag="af:comp" Click="Cmd" />
+      <MenuItem Header="Οπτικοποίηση ήχου">
+        <MenuItem Header="Ανενεργή" Tag="viz:off" Click="Cmd" />
+        <MenuItem Header="Spectrum" Tag="viz:spectrum" Click="Cmd" />
+        <MenuItem Header="Scope" Tag="viz:scope" Click="Cmd" />
+        <MenuItem Header="VU meter" Tag="viz:vuMeter" Click="Cmd" />
+      </MenuItem>
+      <MenuItem Header="Σίγαση" InputGestureText="M" Tag="mute" Click="Cmd" />
+    </MenuItem>
+    <MenuItem Header="Υπότιτλοι">
+      <MenuItem Header="Φόρτωση υποτίτλων…" Tag="subfile" Click="Cmd" />
+      <MenuItem Header="Λήψη υποτίτλων">
+        <MenuItem Header="Αυτόματα (όλες οι πηγές)" InputGestureText="G" Tag="subdl" Click="Cmd" />
+        <MenuItem Header="Αναζήτηση και επιλογή από λίστα…" Tag="subdl:pick" Click="Cmd" />
+        <MenuItem Header="Μόνο Podnapisi" Tag="subdl:pod" Click="Cmd" />
+        <MenuItem Header="Μόνο OpenSubtitles" Tag="subdl:os" Click="Cmd" />
+        <MenuItem Header="Subs4Free (άνοιγμα στον browser)" Tag="subdl:s4f" Click="Cmd" />
+      </MenuItem>
+      <MenuItem Header="Αυτόματος συγχρονισμός με τον ήχο" Tag="subsync" Click="Cmd" />
+      <MenuItem Header="Συγχρονισμός στη γραμμή που ακούγεται" InputGestureText="Y" Tag="subline" Click="Cmd" />
+      <MenuItem Header="Ρυθμίσεις υποτίτλων…" Tag="subcfg" Click="Cmd" />
+      <MenuItem Header="Κανάλι υποτίτλων" x:Name="SubTracks" />
+      <MenuItem Header="Ενεργοποίηση / απενεργοποίηση υποτίτλων" Tag="subtoggle" Click="Cmd" />
+      <MenuItem Header="Επόμενο κανάλι υποτίτλων" InputGestureText="V" Tag="subcycle" Click="Cmd" />
+      <MenuItem Header="Καθυστέρηση −100ms" Tag="sd-" Click="Cmd" />
+      <MenuItem Header="Καθυστέρηση +100ms" Tag="sd+" Click="Cmd" />
+    </MenuItem>
+    <MenuItem Header="Βίντεο">
+      <MenuItem Header="Αναλογία εικόνας">
+        <MenuItem Header="Προεπιλογή" Tag="ar:" Click="Cmd" />
+        <MenuItem Header="16:9" Tag="ar:16:9" Click="Cmd" />
+        <MenuItem Header="4:3" Tag="ar:4:3" Click="Cmd" />
+        <MenuItem Header="21:9" Tag="ar:21:9" Click="Cmd" />
+        <MenuItem Header="1:1" Tag="ar:1:1" Click="Cmd" />
+      </MenuItem>
+      <MenuItem Header="Περιστροφή / Αναστροφή">
+        <MenuItem Header="Καμία" Tag="vf:rot:off" Click="Cmd" />
+        <MenuItem Header="90°" Tag="vf:rot:90" Click="Cmd" />
+        <MenuItem Header="180°" Tag="vf:rot:180" Click="Cmd" />
+        <MenuItem Header="270°" Tag="vf:rot:270" Click="Cmd" />
+        <MenuItem Header="Οριζόντια αναστροφή" Tag="vf:rot:hflip" Click="Cmd" />
+        <MenuItem Header="Κάθετη αναστροφή" Tag="vf:rot:vflip" Click="Cmd" />
+      </MenuItem>
+      <MenuItem Header="Κανάλι βίντεο" x:Name="VideoTracks" />
+      <MenuItem Header="Μέγεθος παραθύρου">
+        <MenuItem Header="50% του βίντεο" InputGestureText="Ctrl+5" Tag="fit:0.5" Click="Cmd" />
+        <MenuItem Header="100% του βίντεο" InputGestureText="Ctrl+1" Tag="fit:1" Click="Cmd" />
+        <MenuItem Header="200% του βίντεο" InputGestureText="Ctrl+2" Tag="fit:2" Click="Cmd" />
+      </MenuItem>
+      <MenuItem Header="Αποπλεξία (Deinterlace)" IsCheckable="True" Tag="vf:deint" Click="Cmd" />
+      <MenuItem Header="Όξυνση εικόνας (Sharpen)" IsCheckable="True" Tag="vf:sharp" Click="Cmd" />
+      <MenuItem Header="Μεγέθυνση (Zoom)">
+        <MenuItem Header="Προσαρμογή" Tag="zoom:0" Click="Cmd" />
+        <MenuItem Header="50%" Tag="zoom:0.5" Click="Cmd" />
+        <MenuItem Header="100%" Tag="zoom:1" Click="Cmd" />
+        <MenuItem Header="200%" Tag="zoom:2" Click="Cmd" />
+      </MenuItem>
+      <MenuItem Header="Περικοπή (Crop)">
+        <MenuItem Header="Καμία" Tag="crop:" Click="Cmd" />
+        <MenuItem Header="16:9" Tag="crop:16:9" Click="Cmd" />
+        <MenuItem Header="4:3" Tag="crop:4:3" Click="Cmd" />
+        <MenuItem Header="1:1" Tag="crop:1:1" Click="Cmd" />
+      </MenuItem>
+      <MenuItem Header="Φωτεινότητα + / −" Tag="b+" Click="Cmd" />
+      <MenuItem Header="Φωτεινότητα −" Tag="b-" Click="Cmd" />
+      <MenuItem Header="Αντίθεση +" Tag="c+" Click="Cmd" />
+      <MenuItem Header="Αντίθεση −" Tag="c-" Click="Cmd" />
+      <MenuItem Header="Κορεσμός +" Tag="s+" Click="Cmd" />
+      <MenuItem Header="Κορεσμός −" Tag="s-" Click="Cmd" />
+      <MenuItem Header="Gamma +" Tag="g+" Click="Cmd" />
+      <MenuItem Header="Gamma −" Tag="g-" Click="Cmd" />
+      <MenuItem Header="Επαναφορά εικόνας" Tag="vreset" Click="Cmd" />
+    </MenuItem>
+    <MenuItem Header="Θέματα" x:Name="SkinMenu" />
+  </MenuItem>
+  <MenuItem Header="Βο_ήθεια">
+    <MenuItem Header="Βοήθεια και συντομεύσεις" InputGestureText="F1" Tag="help:3" Click="Cmd" />
+    <MenuItem Header="Οδηγίες χρήσης" Tag="help:1" Click="Cmd" />
+    <MenuItem Header="Ιστορικό εκδόσεων" Tag="help:0" Click="Cmd" />
+    <MenuItem Header="Άδεια χρήσης" Tag="help:2" Click="Cmd" />
+  </MenuItem>
+</Menu>
+
+    <Grid Grid.Row="1">
+      <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition x:Name="ListCol" Width="Auto"/></Grid.ColumnDefinitions>
+      <vlc:VideoView x:Name="Video" Background="Black">
+        <Grid Background="#01000000" Focusable="True" AllowDrop="True" Drop="Window_Drop" PreviewKeyDown="Window_KeyDown" MouseLeftButtonDown="Video_Down" MouseWheel="Video_Wheel">
+          <Grid.ContextMenu>
+            <ContextMenu>
+              <MenuItem Header="Αναπαραγωγή / Παύση" Tag="pp" Click="Cmd"/><MenuItem Header="Διακοπή" Tag="stop" Click="Cmd"/>
+              <MenuItem Header="Προηγούμενο" Tag="prev" Click="Cmd"/><MenuItem Header="Επόμενο" Tag="next" Click="Cmd"/>
+              <MenuItem Header="Πλήρης οθόνη" Tag="full" Click="Cmd"/><MenuItem Header="Λίστα αναπαραγωγής" Tag="list" Click="Cmd"/>
+              <MenuItem Header="Στιγμιότυπο" Tag="snap" Click="Cmd"/><MenuItem Header="Λήψη υποτίτλων" Tag="subdl" Click="Cmd"/>
+              <MenuItem Header="Πληροφορίες πολυμέσου" Tag="info" Click="Cmd"/><MenuItem Header="Έξοδος" Tag="exit" Click="Cmd"/>
+            </ContextMenu>
+          </Grid.ContextMenu>
+          <StackPanel x:Name="Logo" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False">
+            <local:AnimatedLogo Width="200" Height="200"/>
+            <TextBlock Text="Opsis Media Player Pro" Foreground="#CFE8FF" FontSize="22" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,6,0,0"/>
+            <TextBlock Text="Σύρε αρχεία εδώ ή πάτα Ctrl+O" Foreground="#6F8BA8" FontSize="13" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+          </StackPanel>
+          <TextBlock x:Name="Osd" Visibility="Collapsed" Foreground="White" FontSize="22" FontWeight="SemiBold" Margin="18,14" HorizontalAlignment="Left" VerticalAlignment="Top" IsHitTestVisible="False">
+            <TextBlock.Effect><DropShadowEffect ShadowDepth="1" BlurRadius="6" Color="Black"/></TextBlock.Effect>
+          </TextBlock>
+        </Grid>
+      </vlc:VideoView>
+      <Border x:Name="SidePanel" Grid.Column="1" Width="300" ClipToBounds="True" Background="{DynamicResource BarBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="2,0,0,0" MouseEnter="Side_Enter" MouseLeave="Side_Leave">
+        <Grid Width="298" HorizontalAlignment="Left">
+          <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+          <StackPanel x:Name="MetaCard" Margin="14,14,14,8" Visibility="Collapsed">
+            <Image x:Name="Poster" MaxHeight="230" Stretch="Uniform" HorizontalAlignment="Center" Visibility="Collapsed" Margin="0,0,0,10"/>
+            <TextBlock x:Name="MetaKind" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
+            <TextBlock x:Name="MetaTitle" FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap" Foreground="{DynamicResource FgBrush}" Margin="0,2,0,0"/>
+            <TextBlock x:Name="MetaSub" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource FgBrush}" Margin="0,2,0,0"/>
+            <TextBlock x:Name="MetaExtra" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" Margin="0,4,0,0"/>
+            <TextBlock x:Name="MetaSummary" FontSize="12.5" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="96" Foreground="{DynamicResource FgBrush}" Margin="0,8,0,0"/>
+            <TextBlock x:Name="MetaTech" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" Margin="0,8,0,0"/>
+          </StackPanel>
+          <ListBox x:Name="List" Grid.Row="1" Background="Transparent" Foreground="{DynamicResource FgBrush}" BorderThickness="0" DisplayMemberPath="Name" MouseDoubleClick="List_DoubleClick">
+            <ListBox.ContextMenu>
+              <ContextMenu>
+                <MenuItem Header="Εμφάνιση στον φάκελο" Tag="listfolder" Click="Cmd" />
+                <MenuItem Header="Αντιγραφή διαδρομής" Tag="listcopy" Click="Cmd" />
+                <MenuItem Header="Αφαίρεση από τη λίστα" Tag="plrem" Click="Cmd" />
+              </ContextMenu>
+            </ListBox.ContextMenu>
+          </ListBox>
+        </Grid>
+      </Border>
+    </Grid>
+
+    <Slider x:Name="Seek" Grid.Row="2" Height="22" Margin="12,6,12,0" Minimum="0" Maximum="1" IsMoveToPointEnabled="True" Focusable="False"
+            PreviewMouseLeftButtonDown="Seek_Down" PreviewMouseLeftButtonUp="Seek_Up"/>
+
+    <Grid x:Name="Controls" Grid.Row="3" Background="{DynamicResource BarBrush}" Height="56">
+      <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+      <StackPanel Orientation="Horizontal" Margin="8,0">
+        <Button Style="{StaticResource Ico}" Content="&#xE892;" Tag="prev" Click="Cmd"/>
+        <Button x:Name="PlayBtn" Background="{DynamicResource AccentBrush}" Foreground="White" Style="{StaticResource Ico}" Content="&#xE768;" Tag="pp" Click="Cmd"/>
+        <Button Style="{StaticResource Ico}" Content="&#xE71A;" Tag="stop" Click="Cmd"/>
+        <Button Style="{StaticResource Ico}" Content="&#xE893;" Tag="next" Click="Cmd"/>
+        <Button Style="{StaticResource Ico}" Content="&#xE8E5;" Click="Open_Click"/>
+        <TextBlock x:Name="TimeText" Style="{StaticResource T}" Text="00:00 / 00:00" Margin="12,0,0,0"/>
+      </StackPanel>
+      <TextBlock x:Name="Status" Grid.Column="1" Style="{StaticResource T}" Margin="16,0" TextTrimming="CharacterEllipsis"/>
+      <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="8,0">
+        <TextBlock x:Name="SpeedText" Style="{StaticResource T}" Text="1×" Margin="0,0,8,0"/>
+        <Button x:Name="ModeBtn" Style="{StaticResource Ico}" Content="&#xE708;" Tag="modenext" Click="Cmd" ToolTip="Σκούρη / φωτεινή / αυτόματη λειτουργία (Ctrl+Shift+L)"/>
+        <Button x:Name="MuteBtn" Style="{StaticResource Ico}" Content="&#xE767;" Tag="mute" Click="Cmd"/>
+        <Slider x:Name="Vol" Width="110" Minimum="0" Maximum="200" Value="80" VerticalAlignment="Center" IsMoveToPointEnabled="True" Focusable="False" ValueChanged="Vol_Changed"/>
+        <Button Style="{StaticResource Ico}" Content="&#xE8FD;" Tag="list" Click="Cmd"/>
+        <Button Style="{StaticResource Ico}" Content="&#xE740;" Tag="full" Click="Cmd"/>
+      </StackPanel>
+    </Grid>
+  </Grid>
+</Window>
