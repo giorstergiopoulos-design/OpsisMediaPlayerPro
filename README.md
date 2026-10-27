@@ -8,7 +8,7 @@
 <p align="center">
   <img alt="Platform" src="https://img.shields.io/badge/platform-Windows%2010%2F11-0078D6?logo=windows&logoColor=white" />
   <img alt=".NET" src="https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white" />
-  <img alt="Version" src="https://img.shields.io/badge/version-1.3.0-00B4D8" />
+  <img alt="Version" src="https://img.shields.io/badge/version-1.4.0-00B4D8" />
   <img alt="License" src="https://img.shields.io/badge/license-MIT-green" />
 </p>
 
@@ -25,6 +25,7 @@
 | 🎞 Βίντεο | Αναλογία εικόνας, περικοπή, zoom, **περιστροφή/αναστροφή**, αποπλεξία, όξυνση, φωτεινότητα/αντίθεση/κορεσμός/gamma, στιγμιότυπο (αρχείο ή πρόχειρο), προσαρμογή παραθύρου στο βίντεο |
 | 💬 Υπότιτλοι | Λήψη από **Podnapisi**, **OpenSubtitles.com** (με δικό σου κλειδί) και Subs4Free με **έξυπνη κατάταξη** (σεζόν/επεισόδιο, έτος, ανάλυση, πηγή, ομάδα· σύγκριση των 3 καλύτερων με τη διάρκεια του βίντεο), υποστήριξη `.srt` `.vtt` `.ass` `.ssa` και UTF-8/16/ελληνικών κωδικοποιήσεων, **αυτόματος συγχρονισμός με τον ήχο** (μετατόπιση ±5′ με ακρίβεια 20 ms **και απόκλιση fps** από δύο τμήματα της ταινίας), συγχρονισμός στη γραμμή που ακούγεται (`Y`), καθυστέρηση (`Z` `X`), εναλλαγή καναλιού (`V`) |
 | 📂 Λίστα | M3U, ταξινόμηση, μετακίνηση πάνω/κάτω, τυχαία σειρά, επανάληψη λίστας ή αρχείου, διακοπή μετά το τρέχον, πρόσφατα, μενού δεξιού κλικ (φάκελος, αντιγραφή διαδρομής) |
+| 👋 Καλωσόρισμα και οικογένεια Opsis | Οδηγός χρήσης στην πρώτη εκκίνηση κάθε νέας έκδοσης, κάρτες όλων των εφαρμογών της οικογένειας με Άνοιγμα / Λήψη με SHA-256, ειδοποίηση νέας έκδοσης μέσα στο παράθυρο |
 | 🎨 Εμφάνιση | 16 θέματα, χρώμα έμφασης, δικά σου θέματα `.json`, **κουμπί σκούρας/φωτεινής/αυτόματης λειτουργίας** που ισχύει σε ΟΛΑ τα παράθυρα (και στη γραμμή τίτλου), στρογγυλεμένα μενού, πλευρικό πάνελ με εξώφυλλο και πληροφορίες ταινίας/σειράς |
 | 🧰 Εργαλεία | Μετατροπή σε MP4/MP3, εξαγωγή κλιπ A-B, στατιστικά αναπαραγωγής (`Ctrl+J`), αποστολή σε Chromecast/DLNA, θυμάται θέση και μέγεθος παραθύρου |
 
@@ -33,6 +34,10 @@
 `Space` παύση · `←/→` ∓5″ · `Shift+←/→` ∓15″ · `Ctrl+←/→` ∓30″ · `Alt+←/→` ∓1″ · `Ctrl+Shift+←/→` ∓5′ · `↑/↓` ένταση · `M` σίγαση · `F11`/`Enter` πλήρης οθόνη · `[` `]` `=` ταχύτητα · `E` καρέ-καρέ · `L` A-B · `Home`/`End` προηγούμενο/επόμενο · `PgUp`/`PgDn` κεφάλαια · `S` στιγμιότυπο · `Ctrl+C` στιγμιότυπο στο πρόχειρο · `V` υπότιτλοι · `B` κανάλι ήχου · `T` χρόνος · `Ctrl+E` ενισχυτής ήχου · `Ctrl+J` στατιστικά · `Ctrl+Shift+L` σκούρη/φωτεινή/αυτόματη.
 
 ### Ιδιωτικότητα — τι επικοινωνεί με το διαδίκτυο
+
+- **Έλεγχος νέας έκδοσης** (ενεργός από προεπιλογή, Βοήθεια → «Ειδοποίηση για νέες εκδόσεις»): 30″ μετά την εκκίνηση και μετά κάθε 24 ώρες ένα `GET` στο `api.github.com/repos/giorstergiopoulos-design/OpsisMediaPlayerPro/releases/latest` (με ETag, timeout 8″). Στέλνεται μόνο αυτό το αίτημα, χωρίς δεδομένα σου. Μία ειδοποίηση ανά έκδοση, μέσα στο παράθυρο.
+- **Κατάλογος εφαρμογών της οικογένειας** (παράθυρο «Οι εφαρμογές της οικογένειας Opsis»): το πολύ μία λήψη την ημέρα του `suite/apps.json` από το GitHub (έγκυρο μόνο αν έρχεται από github.com, ≤256 KB και περνά έλεγχο)· διαφορετικά χρησιμοποιείται το ενσωματωμένο αντίγραφο. Ο έλεγχος «εγκατεστημένο» διαβάζει μόνο το registry και γνωστούς φακέλους.
+- **Λήψη εφαρμογής από το παράθυρο**: μόνο μετά από επιβεβαίωση (όνομα, μέγεθος, πηγή), με έλεγχο SHA-256 και ΑΡΝΗΣΗ αν δεν ταιριάζει· δεν εκτελείται ποτέ αυτόματα.
 
 - **Αυτόματη λήψη υποτίτλων** (ενεργή από προεπιλογή): όταν ανοίγεις βίντεο χωρίς αρχείο υποτίτλων, στέλνεται ένα καθαρισμένο όνομα (και, για το OpenSubtitles, ένα hash του αρχείου) στο Podnapisi/OpenSubtitles. Για αρχεία **ήχου** δεν γίνεται αναζήτηση.
 - **Πληροφορίες ταινίας/σειράς** (ενεργές από προεπιλογή): ο καθαρισμένος τίτλος αποστέλλεται σε TVmaze, iTunes και Wikipedia για εξώφυλλο και περιγραφή.
@@ -61,7 +66,7 @@ powershell -File tests\run-selftest.ps1 # μόνο το self-test
 
 Highlights: frame step, speed 0.25–4×, A-B loop, chapters/titles, bookmarks, per-file resume, 10-band equalizer and effects, output-device and channel selection, aspect/crop/zoom/rotate/flip/deinterlace/colour adjustments, subtitle download (Podnapisi, OpenSubtitles.com with your key, Subs4Free) with audio-based sync, M3U playlists, 16 themes with a light/dark/auto button, MP4/MP3 conversion, A-B clip export, playback statistics (`Ctrl+J`), Chromecast/DLNA, and window position memory.
 
-**Privacy:** automatic subtitle download and online movie/series information are **on by default** and send a cleaned-up title derived from the file name (and, for OpenSubtitles, a file hash) to Podnapisi/OpenSubtitles, TVmaze, iTunes and Wikipedia. Audio files are never searched. Both can be turned off in the settings. No telemetry.
+**Privacy:** automatic subtitle download and online movie/series information are **on by default** and send a cleaned-up title derived from the file name (and, for OpenSubtitles, a file hash) to Podnapisi/OpenSubtitles, TVmaze, iTunes and Wikipedia. Audio files are never searched. Both can be turned off in the settings. No telemetry. Once a day one GET goes to the GitHub releases API to look for a new version (switch it off in the Help menu) and the app catalogue of the "Opsis family" window is fetched from GitHub at most once a day (validated: github.com only, 256 KB max); apps are downloaded only after your confirmation and a SHA-256 check.
 
 **Install:** download `OpsisMediaPlayerPro-Setup.exe` (no admin) or the portable zip from [Releases](../../releases/latest). The package is self-contained (.NET + libvlc included, hence its size).
 

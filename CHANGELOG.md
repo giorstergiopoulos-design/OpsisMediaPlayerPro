@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.0 — 2026-10-27
+- **Welcome guide**: 6 pages (Greek/English) on the first start of every new major/minor version and from Help → "Welcome"; animated app logo; "Don't show again"; closes by shrinking into the title-bar icon (a simple fade on PCs with animations turned off).
+- **"The Opsis family"** window: one card per app of the suite (animated icon, tagline, capabilities, installed / update-available state from a read-only registry/folder probe, Open, Download with confirmation + SHA-256 check that refuses a mismatch, Details). Offered once after the guide.
+- **New-version notice**: one GET a day to the GitHub releases API (ETag, 8 s timeout), once per version, as a toast inside the window (the player has no tray icon; no toast in full screen); setting in the Help menu.
+- Catalogue: embedded fallback + a live copy at most once a day (github.com only, ≤256 KB, validated). 120+ new unit tests for version comparison, once-per-version logic, catalogue validation, installed-state detection and SHA-256 verification; the self-test opens the real windows.
+
 ## 1.3.0 — 2026-10-23
 - **Dark / light mode for EVERY window**: the theme colours now live at application level (before, only the main window had them and the other windows kept a copy or the system look, so text could be unreadable after a mode change). The audio, help, statistics, subtitle-picker and prompt windows follow the theme live, and the title bars / borders follow it too (Windows 11 22H2+; older Windows only get the dark/light caption).
 - **Moved from .NET 8 to .NET 10** (the app, the unit tests, the build scripts). LibVLCSharp.WPF 3.8.5 and libvlc 3.0.21 run unchanged on .NET 10.

@@ -49,6 +49,7 @@ namespace MediaPlayerPro
             timer.Tick += (s, e) => Tick(); timer.Start();
             sleep.Tick += (s, e) => { sleep.Stop(); Do("stop"); Say("Χρονόμετρο ύπνου: διακοπή"); };
             InitMc();
+            InitSuite();
             if (Environment.GetCommandLineArgs().Contains("--selftest")) StartSelfTest();
             if (Environment.GetCommandLineArgs().Contains("--ui-demo")) StartUiDemo();
             var args = Environment.GetCommandLineArgs().Skip(1).Where(File.Exists).ToArray();

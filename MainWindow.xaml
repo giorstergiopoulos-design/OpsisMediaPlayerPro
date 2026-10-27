@@ -302,6 +302,11 @@
     <MenuItem Header="Οδηγίες χρήσης" Tag="help:1" Click="Cmd" />
     <MenuItem Header="Ιστορικό εκδόσεων" Tag="help:0" Click="Cmd" />
     <MenuItem Header="Άδεια χρήσης" Tag="help:2" Click="Cmd" />
+    <Separator/>
+    <MenuItem Header="Καλώς ήρθες — οδηγός χρήσης…" Tag="welcome" Click="Cmd" />
+    <MenuItem Header="Οι εφαρμογές της οικογένειας Opsis…" Tag="suite" Click="Cmd" />
+    <MenuItem Header="Έλεγχος για νέα έκδοση τώρα" Tag="updcheck" Click="Cmd" />
+    <MenuItem Header="Ειδοποίηση για νέες εκδόσεις" x:Name="UpdNotifyItem" IsCheckable="True" IsChecked="True" Tag="updnotify" Click="Cmd" />
   </MenuItem>
 </Menu>
 

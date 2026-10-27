@@ -19,7 +19,7 @@ namespace MediaPlayerPro
         static readonly HashSet<string> SelfTestSkip = new HashSet<string>
         {
             "subfile", "loadpl", "savepl", "stream", "dvd", "cam", "openurl", "goto", "cv:mp4", "cv:mp3", "cv:clip", "subdl", "subdl:pod", "subdl:os", "subdl:pick", "subdl:s4f",
-            "subcfg", "info", "fx", "exit", "after:exit", "after:shutdown", "listfolder", "snapclip", "subsync", "subline", "plclear", "plrem", "stop",
+            "subcfg", "info", "fx", "exit", "after:exit", "after:shutdown", "listfolder", "snapclip", "welcome", "suite", "subsync", "subline", "plclear", "plrem", "stop",
         };
 
         void StartSelfTest()
@@ -87,6 +87,8 @@ namespace MediaPlayerPro
             // 4) ΠΡΑΓΜΑΤΙΚΟΣ συγχρονισμός υποτίτλων: ήχος με «ομιλία» στις γραμμές + 7,3 s, υπότιτλος χωρίς τη μετατόπιση → το .synced.srt πρέπει να ευθυγραμμιστεί
             try { await SyncSelfTest(Report); }
             catch (Exception ex) { Report("subtitle sync end-to-end", false, ex.GetType().Name + ": " + ex.Message); }
+
+            await SuiteSelfTest(Report);
 
             log.AppendLine($"TOTAL: {pass} passed, {fail} failed, {skipped} skipped");
             File.WriteAllText(SelfTestFile, log.ToString());

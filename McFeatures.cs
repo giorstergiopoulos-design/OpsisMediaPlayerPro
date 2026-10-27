@@ -91,7 +91,7 @@ namespace MediaPlayerPro
             }
             if (c.StartsWith("fit:")) { FitWindow(double.Parse(c.Substring(4), System.Globalization.CultureInfo.InvariantCulture)); return true; }
             if (c.StartsWith("ch:")) { SetChannelMode(c.Substring(3)); return true; }
-            return false;
+            return SuiteCmd(c);
         }
 
         void MoveSelected(int delta)
@@ -211,6 +211,7 @@ namespace MediaPlayerPro
         // Δυναμικά μενού: συσκευή εξόδου ήχου, κανάλι βίντεο, τίτλοι, κεφάλαια.
         void FillMc()
         {
+            try { UpdNotifyItem.IsChecked = updater == null || updater.NotifyEnabled; } catch (Exception) { }
             AudioDevices.Items.Clear(); VideoTracks.Items.Clear(); TitleMenu.Items.Clear(); ChapterMenu.Items.Clear();
             try
             {
