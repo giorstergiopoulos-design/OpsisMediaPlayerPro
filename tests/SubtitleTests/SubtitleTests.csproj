@@ -9,6 +9,7 @@
   <ItemGroup>
     <!-- Ο καθαρός κώδικας υποτίτλων (χωρίς WPF) μεταγλωττίζεται απευθείας μέσα στα τεστ -->
     <Compile Include="..\..\SubCore\*.cs" Link="SubCore\%(Filename)%(Extension)" />
+    <Compile Include="..\..\ConvertCore\*.cs" Link="ConvertCore\%(Filename)%(Extension)" />
     <Compile Include="..\..\SuiteCore\*.cs" Link="SuiteCore\%(Filename)%(Extension)" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="xunit" Version="2.9.3" />

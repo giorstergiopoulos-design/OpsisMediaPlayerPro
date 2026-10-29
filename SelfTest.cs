@@ -18,7 +18,7 @@ namespace MediaPlayerPro
     {
         static readonly HashSet<string> SelfTestSkip = new HashSet<string>
         {
-            "subfile", "loadpl", "savepl", "stream", "dvd", "cam", "openurl", "goto", "cv:mp4", "cv:mp3", "cv:clip", "subdl", "subdl:pod", "subdl:os", "subdl:pick", "subdl:s4f",
+            "subfile", "loadpl", "savepl", "stream", "dvd", "cam", "openurl", "goto", "cv:dlg", "cv:mp4", "cv:mp3", "cv:clip", "subdl", "subdl:pod", "subdl:os", "subdl:pick", "subdl:s4f",
             "subcfg", "info", "fx", "exit", "after:exit", "after:shutdown", "listfolder", "snapclip", "welcome", "suite", "subsync", "subline", "plclear", "plrem", "stop",
         };
 
@@ -88,6 +88,7 @@ namespace MediaPlayerPro
             try { await SyncSelfTest(Report); }
             catch (Exception ex) { Report("subtitle sync end-to-end", false, ex.GetType().Name + ": " + ex.Message); }
 
+            await ConvertSelfTest(Report);
             await SuiteSelfTest(Report);
 
             log.AppendLine($"TOTAL: {pass} passed, {fail} failed, {skipped} skipped");

@@ -133,7 +133,7 @@
     <MenuItem Header="Συσκευή λήψης (webcam)" Tag="cam" Click="Cmd" />
     <MenuItem Header="Πρόσφατα αρχεία" x:Name="RecentMenu" />
     <MenuItem Header="Μετατροπή / Εξαγωγή">
-      <MenuItem Header="Μετατροπή σε MP4 (H.264/AAC)…" Tag="cv:mp4" Click="Cmd" />
+      <MenuItem Header="Μετατροπή βίντεο / εικόνας…" Tag="cv:dlg" Click="Cmd" />
       <MenuItem Header="Εξαγωγή ήχου σε MP3…" Tag="cv:mp3" Click="Cmd" />
       <MenuItem Header="Εξαγωγή κλιπ A-B (χωρίς απώλεια)…" Tag="cv:clip" Click="Cmd" />
     </MenuItem>

@@ -100,6 +100,7 @@ namespace MediaPlayerPro
                 case "vf:sharp": sharp = !sharp; ReplayHere(); return true;
                 case "af:norm": norm = !norm; ReplayHere(); return true;
                 case "af:comp": comp = !comp; ReplayHere(); return true;
+                case "cv:dlg": { var v = CurPath(); if (v == null) { Say("Δεν παίζει τοπικό αρχείο"); return true; } new ConvertWindow(v, ab == 2 ? A / 1000.0 : -1, ab == 2 ? B / 1000.0 : -1) { Owner = this }.Show(); return true; }
                 case "cv:mp4": case "cv:mp3": case "cv:clip": _ = ConvertMedia(c); return true;
             }
             if (c.StartsWith("side:")) { SideCmd(c.Substring(5)); return true; }
