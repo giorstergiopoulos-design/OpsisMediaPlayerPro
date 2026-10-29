@@ -280,7 +280,11 @@ namespace MediaPlayerPro
         {
             string text = SubFormats.ToSrt(SubFormats.Decode(blob.Data, CodePage(lang)), blob.Ext);
             if (text == null) throw new InvalidDataException("Δεν βρέθηκαν γραμμές υποτίτλων στο αρχείο");
-            string target = System.IO.Path.ChangeExtension(video, null) + "." + lang + ".srt";
+            var sc = LoadCfg(); string stem = System.IO.Path.GetFileNameWithoutExtension(video);
+            bool primary = string.Equals(lang, (sc.Languages ?? "").Split(',')[0].Trim(), StringComparison.OrdinalIgnoreCase);
+            string folder = !string.IsNullOrWhiteSpace(sc.SubFolder) ? sc.SubFolder : System.IO.Path.GetDirectoryName(video);
+            string target = System.IO.Path.Combine(folder, stem + (sc.PlainName && primary ? "" : "." + lang) + ".srt");
+            try { Directory.CreateDirectory(folder); } catch { }
             try { File.WriteAllText(target, text, new UTF8Encoding(true)); }
             catch { var dir = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(CfgFile), "subs"); Directory.CreateDirectory(dir); target = System.IO.Path.Combine(dir, System.IO.Path.GetFileName(target)); File.WriteAllText(target, text, new UTF8Encoding(true)); }
             return target;
@@ -310,6 +314,26 @@ namespace MediaPlayerPro
                 if (cfg.AutoSync) _ = RunSync(v, target);
             }
             catch (Exception ex) { Say("Σφάλμα: " + ex.Message); }
+        }
+
+        // ---------- Ελληνικές πηγές υποτίτλων στον browser (anti-bot): κάθε πηγή έχει εναλλακτικούς συνδέσμους αν μια σελίδα δεν ανοίγει ----------
+        internal static readonly (string Id, string Name, string Url)[] WebSubSources =
+        {
+            ("s4f", "Subs4Free", "https://www.subs4free.info/search_report.php?search={q}&searchType=1"),
+            ("gs", "GreekSubtitles", "https://www.greeksubtitles.info/?s={q}"),
+            ("cat", "Subtitle Cat (Ελληνικά)", "https://www.subtitlecat.com/index.php?search={q}"),
+            ("os", "OpenSubtitles (ιστοσελίδα, Ελληνικά)", "https://www.opensubtitles.org/el/search/sublanguageid-ell/moviename-{q}"),
+            ("pod", "Podnapisi (ιστοσελίδα, Ελληνικά)", "https://www.podnapisi.net/subtitles/search/?keywords={q}&language=el"),
+        };
+
+        void OpenWebSub(string video, string id)
+        {
+            var src = WebSubSources.FirstOrDefault(s => s.Id == id); if (src.Id == null) return;
+            string kw = CleanQuery(video, out _);
+            try { Process.Start(new ProcessStartInfo(src.Url.Replace("{q}", Uri.EscapeDataString(kw))) { UseShellExecute = true }); }
+            catch (Exception ex) { Say("Δεν άνοιξε ο browser: " + ex.Message + " — δοκίμασε άλλη πηγή από το μενού Υπότιτλοι"); return; }
+            WatchDownloads(video);
+            Say(src.Name + ": κατέβασε τον υπότιτλο (.zip ή .srt) — θα φορτωθεί αυτόματα. Αν η σελίδα δεν δουλεύει (anti-bot/πέσιμο), δοκίμασε μια άλλη πηγή.");
         }
 
         // ---------- Subs4Free: ανοίγει στον browser σου (το site έχει προστασία anti-bot) ----------

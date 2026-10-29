@@ -19,6 +19,8 @@ namespace MediaPlayerPro
         public string Languages { get; set; } = "el,en";
         public bool AutoDownload { get; set; } = true;
         public bool AutoSync { get; set; } = true;
+        public string SubFolder { get; set; } = "";         // κενό = δίπλα στο βίντεο· αλλιώς ο φάκελος που όρισε ο χρήστης
+        public bool PlainName { get; set; } = true;         // true: η κύρια γλώσσα αποθηκεύεται ως «ταινία.srt» (όνομα όπως της ταινίας)· οι υπόλοιπες ως «ταινία.γλώσσα.srt»
         public string OsApiKey { get; set; } = "";      // προαιρετικό: OpenSubtitles.com API key (opensubtitles.com/consumers)
         public string OsUsername { get; set; } = "";
         public string OsPassword { get; set; } = "";
@@ -37,8 +39,11 @@ namespace MediaPlayerPro
 
         bool SubCmd(string c)
         {
+            if (c.StartsWith("subweb:")) { var v0 = CurPath(); if (v0 != null) OpenWebSub(v0, c.Substring(7)); else Say("Δεν παίζει τοπικό αρχείο"); return true; }
             switch (c)
             {
+                case "subdir": { var d = new Microsoft.Win32.OpenFolderDialog { Title = "Φάκελος αποθήκευσης υποτίτλων (Άκυρο = δίπλα στο βίντεο)" }; var c0 = LoadCfg(); if (d.ShowDialog(this) == true) { c0.SubFolder = d.FolderName; Say("Υπότιτλοι σε: " + d.FolderName); } else { c0.SubFolder = ""; Say("Υπότιτλοι δίπλα στο βίντεο"); } SaveCfg(c0); return true; }
+                case "subweb": break;
                 case "subdl": case "subdl:pod": case "subdl:os": case "subdl:pick": case "subdl:s4f":
                     { var v = CurPath(); if (v != null) { if (c == "subdl:s4f") OpenSubs4Free(v); else _ = DownloadSubs(v, c == "subdl" ? "auto" : c.Substring(6)); } return true; }
                 case "subsync": _ = SyncCurrent(); return true;

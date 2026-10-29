@@ -56,7 +56,7 @@ namespace MediaPlayerPro
         internal AudioFx fx = new AudioFx();
         readonly Dictionary<string, AudioFx> customFx = new Dictionary<string, AudioFx>();
         AudioWindow audioWin; string appliedSig = "";
-        readonly DispatcherTimer fxT = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(700) };
+        readonly DispatcherTimer fxT = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(120) };
         static readonly double[] ClW = { 0, 0, 0, 0, 0, 0.5, 0.8, 1, 1, 0.9 }, BsW = { 1, 0.85, 0.55, 0.2, 0, 0, 0, 0, 0, 0 };
         static string AFile(string n) => System.IO.Path.Combine(AppDir, n);
 
@@ -64,7 +64,7 @@ namespace MediaPlayerPro
 
         void LoadAudio()
         {
-            fxT.Tick += (s, e) => { fxT.Stop(); if (FxSig() != appliedSig) ReplayHere(); };
+            fxT.Tick += (s, e) => { fxT.Stop(); if (FxSig() != appliedSig) { Say("Εφαρμογή εφέ ήχου (σύντομη παύση, η θέση διατηρείται)"); ReplayHere(); } };
             try
             {
                 if (File.Exists(AFile("audio.json"))) fx = JsonSerializer.Deserialize<AudioFx>(File.ReadAllText(AFile("audio.json"))) ?? fx;

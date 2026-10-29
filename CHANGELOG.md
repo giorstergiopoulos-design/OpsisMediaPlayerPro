@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.5.0 — 2026-10-29
+- **Converter** (Tools → "Convert video / image…"): MP4, WebM (VP8, VP9), MKV (VP9), AVI (MPEG-4, Motion JPEG), WMV, TS, OGV; resolution, fps, quality, audio codec (AAC/MPEG audio/Opus/Vorbis/WMA/copy/none); image outputs PNG/JPEG: frame sequence (every N seconds/frames, with a range), poster frame, contact sheet; trim from A-B or typed seconds; queue with progress, ETA and cancel; names get a suffix and never overwrite; the original is never touched. Only formats the bundled libvlc 3.0.21 really produces are offered (see docs/CONVERTER.md). **Fixed:** the old "Convert to MP4 (H.264)" produced an empty file — H.264/H.265, GIF and WebP are not available in this libvlc and are not offered.
+- **Encodes go to `Videos\Opsis Media Player`** (created automatically, changeable in the dialog and used as the start folder of the MP3/clip export).
+- **Subtitles**: the primary language is saved as `<movie>.srt` next to the movie (other languages `<movie>.<lang>.srt`); the folder is selectable (Subtitles → "Subtitle save folder…"). New Greek sources opened in the browser with automatic pick-up of the download: GreekSubtitles, Subtitle Cat, OpenSubtitles web, Podnapisi web, Subs4Free — with a message to try another source if a site is down or shows anti-bot protection.
+- **CheckBox / RadioButton** now use the theme (accent fill, check mark, indeterminate dash, keyboard focus ring) in dark and light — before they were the default Windows controls.
+- **One light/dark control**: the duplicate "Light" entry was removed from the Theme menu (the mode button / Ctrl+Shift+L is the only switch).
+- **Audio effects (Ambience, Surround, Dynamic Boost)**: apply after 0.12 s instead of 0.7 s and keep the playback position (self-test toggles each during playback). **Still open:** libvlc 3.0 cannot change these filters on a running player, so a short restart of the stream remains; the status bar says so.
+- **Opsis family window**: the real icon of all 7 apps (embedded .ico, largest frame, crisp at 100/150/200 %); the letter tile is only the fallback for unknown apps. Test: every catalogue app has an embedded icon.
+- Installer wizard pages show the app icon (large + small image, modern style).
+- Tests: 131 unit tests (11 new for the converter and icons), self-test extended with real conversions of every offered format, the three image outputs, the original-untouched check and the audio-effect position check: 118 passed, 0 failed.
+- Not done in this release: translations (the player UI is Greek-only; new strings follow that), screenshots refresh, DPI 150 % pass of the new dialog.
+
 ## 1.4.0 — 2026-10-27
 - **Welcome guide**: 6 pages (Greek/English) on the first start of every new major/minor version and from Help → "Welcome"; animated app logo; "Don't show again"; closes by shrinking into the title-bar icon (a simple fade on PCs with animations turned off).
 - **"The Opsis family"** window: one card per app of the suite (animated icon, tagline, capabilities, installed / update-available state from a read-only registry/folder probe, Open, Download with confirmation + SHA-256 check that refuses a mismatch, Details). Offered once after the guide.

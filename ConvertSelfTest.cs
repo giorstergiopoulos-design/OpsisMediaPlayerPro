@@ -12,6 +12,24 @@ namespace MediaPlayerPro
 {
     public partial class MainWindow
     {
+        // Bug 6: Ambience/Surround/Dynamic Boost δεν πρέπει να ξαναρχίζουν το κομμάτι· η θέση πρέπει να συνεχίζει.
+        async Task FxContinuitySelfTest(Action<string, bool, string> report)
+        {
+            try
+            {
+                string tone = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "opsis_selftest_tone.wav"); if (!File.Exists(tone)) { report("audio effects keep position", false, "tone file missing"); return; }
+                AddFiles(new[] { tone }, true); await Task.Delay(1500); mp.Time = 40000; await Task.Delay(1200);
+                foreach (var name in new[] { "Ambience", "Surround", "Dynamic Boost" })
+                {
+                    long t0 = mp.Time; fx.On = true; fx.Ambience = name == "Ambience" ? 3 : 0; fx.Surround = name == "Surround" ? 4 : 0; fx.Dynamic = name == "Dynamic Boost" ? 5 : 0;
+                    ApplyAudio(); await Task.Delay(2500); long t1 = mp.Time; long adv = t1 - t0;
+                    report("audio effect '" + name + "' keeps playback position", adv > 500 && adv < 6000 && mp.IsPlaying, $"position advanced {adv} ms in 2.5 s (a restart from 0 would be negative)");
+                }
+                fx.On = false; fx.Ambience = fx.Surround = fx.Dynamic = 0; ApplyAudio(); await Task.Delay(800);
+            }
+            catch (Exception ex) { report("audio effects keep position", false, ex.Message); }
+        }
+
         // Πραγματικές μετατροπές κάθε προσφερόμενης εξόδου· επαληθεύεται διάρκεια και ανάλυση του αποτελέσματος.
         async Task ConvertSelfTest(Action<string, bool, string> report)
         {

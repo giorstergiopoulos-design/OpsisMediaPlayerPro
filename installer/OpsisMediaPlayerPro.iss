@@ -2,7 +2,7 @@
 ; Build with build.ps1 (it publishes the self-contained app into dist\app first).
 ; Silent install: OpsisMediaPlayerPro-Setup.exe /VERYSILENT
 #define MyAppName "Opsis Media Player Pro"
-#define MyAppVersion "1.4.0"
+#define MyAppVersion "1.5.0"
 #define MyAppExe "OpsisMediaPlayerPro.exe"
 #ifndef DistDir
   #define DistDir "..\dist\app"
@@ -14,6 +14,9 @@ AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher=Opsis Team
 SetupIconFile=..\app.ico
+WizardImageFile=wizard-large.bmp
+WizardSmallImageFile=wizard-small.bmp
+WizardStyle=modern
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes

@@ -132,7 +132,7 @@ namespace MediaPlayerPro
         {
             SkinMenu.Items.Clear();
             // Η λειτουργία light / dark / αυτόματη ΔΕΝ είναι πια στο μενού: έχει δικό της κουμπί στη γραμμή ελέγχου (ModeBtn) και Ctrl+Shift+L.
-            foreach (var k in AllSkins()) { var n = k.Name; var m = new MenuItem { Header = n, IsChecked = n == curSkin }; m.Click += (s, e) => ApplySkin(n); SkinMenu.Items.Add(m); }
+            foreach (var k in AllSkins().Where(z => z.Name != "Φωτεινό")) { var n = k.Name; var m = new MenuItem { Header = n, IsChecked = n == curSkin }; m.Click += (s, e) => ApplySkin(n); SkinMenu.Items.Add(m); }
             var ac = new MenuItem { Header = "Χρώμα έμφασης" };
             var def = new MenuItem { Header = "Από το θέμα", IsChecked = accentOverride == null }; def.Click += (s, e) => { accentOverride = null; ApplySkin(curSkin); }; ac.Items.Add(def);
             foreach (var (n, hex) in Accents)

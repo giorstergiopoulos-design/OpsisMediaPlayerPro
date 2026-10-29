@@ -71,3 +71,19 @@ namespace MediaPlayerPro.Tests
         [Fact] public void QualityScalesBitrate() => Assert.True(ConvertCore.VideoKbps(Quality.High, 720, 0) > ConvertCore.VideoKbps(Quality.Low, 720, 0));
     }
 }
+namespace MediaPlayerPro.Tests
+{
+    public class FamilyIconTests
+    {
+        [Fact] public void EveryAppInCatalogueHasAnEmbeddableIcon()
+        {
+            string root = System.AppContext.BaseDirectory; while (root != null && !System.IO.File.Exists(System.IO.Path.Combine(root, "suite", "apps.json"))) root = System.IO.Path.GetDirectoryName(root);
+            Assert.NotNull(root);
+            var doc = System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllText(System.IO.Path.Combine(root, "suite", "apps.json")));
+            var ids = doc.RootElement.GetProperty("apps").EnumerateArray().Select(a => a.GetProperty("id").GetString()).ToList();
+            Assert.Equal(7, ids.Count);
+            foreach (var id in ids) Assert.True(System.IO.File.Exists(System.IO.Path.Combine(root, "suite", "icons", id + ".ico")), "missing icon for " + id);
+            var csproj = System.IO.File.ReadAllText(System.IO.Path.Combine(root, "OpsisMediaPlayerPro.csproj")); Assert.Contains("suite/icons/*.ico", csproj);
+        }
+    }
+}

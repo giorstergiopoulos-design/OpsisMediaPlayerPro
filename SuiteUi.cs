@@ -299,8 +299,22 @@ namespace MediaPlayerPro
         }
 
         /// <summary>Κινούμενο εικονίδιο για τις εφαρμογές που δεν έχουμε το πραγματικό τους: δαχτυλίδι που γυρίζει γύρω από το αρχικό της εφαρμογής.</summary>
+        /// <summary>Το ΠΡΑΓΜΑΤΙΚΟ εικονίδιο της εφαρμογής (ενσωματωμένο στο exe, μεγαλύτερο frame του .ico ώστε να είναι καθαρό στο 100/150/200 %), ή null αν δεν υπάρχει.</summary>
+        internal static System.Windows.Media.Imaging.BitmapSource EmbeddedIcon(string appId)
+        {
+            try
+            {
+                using var s = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("suite.icon." + appId + ".ico"); if (s == null) return null;
+                var dec = new System.Windows.Media.Imaging.IconBitmapDecoder(s, System.Windows.Media.Imaging.BitmapCreateOptions.PreservePixelFormat, System.Windows.Media.Imaging.BitmapCacheOption.OnLoad);
+                var best = dec.Frames.OrderByDescending(f => f.PixelWidth).First(); best.Freeze(); return best;
+            }
+            catch { return null; }
+        }
+
         private static UIElement AppBadge(SuiteApp app)
         {
+            var ico = EmbeddedIcon(app.Id);
+            if (ico != null) { var im = new System.Windows.Controls.Image { Width = 64, Height = 64, Source = ico, VerticalAlignment = VerticalAlignment.Top, SnapsToDevicePixels = true }; RenderOptions.SetBitmapScalingMode(im, BitmapScalingMode.HighQuality); return im; }
             var hue = Math.Abs(app.Id.GetHashCode()) % 360;
             var color = FromHsv(hue, 0.65, 0.95);
             var grid = new Grid { Width = 64, Height = 64, VerticalAlignment = VerticalAlignment.Top };

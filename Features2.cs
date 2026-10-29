@@ -117,7 +117,8 @@ namespace MediaPlayerPro
             if (kind == "cv:clip") { if (ab != 2) { Say("Όρισε πρώτα επανάληψη A-B (L, L)"); return; } st = A / 1000.0; sp = B / 1000.0; sout = "#std{access=file,mux=ts,dst={OUT}}"; ext = "_clip.ts"; }
             else if (kind == "cv:mp3") { sout = "#transcode{acodec=mp3,ab=192,channels=2,samplerate=44100,vcodec=none}:std{access=file,mux=raw,dst={OUT}}"; ext = ".mp3"; }
             else { sout = "#transcode{vcodec=h264,acodec=mp4a,ab=192,channels=2,samplerate=48000,scodec=none}:std{access=file,mux=mp4,dst={OUT}}"; ext = "_conv.mp4"; }
-            var d = new SaveFileDialog { FileName = System.IO.Path.GetFileNameWithoutExtension(v) + ext };
+            Directory.CreateDirectory(ConvertWindow.OutDir);
+            var d = new SaveFileDialog { FileName = System.IO.Path.GetFileNameWithoutExtension(v) + ext, InitialDirectory = ConvertWindow.OutDir };
             if (d.ShowDialog() != true) return;
             try
             {
