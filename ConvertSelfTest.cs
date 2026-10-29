@@ -18,7 +18,7 @@ namespace MediaPlayerPro
         {
             ("cv:dlg", "Μετατροπή βίντεο / εικόνας…", "Convert video / image…"),
             ("subdir", "Φάκελος αποθήκευσης υποτίτλων…", "Subtitle save folder…"),
-            ("subweb:gs", "GreekSubtitles", "GreekSubtitles"), ("subweb:cat", "Subtitle Cat (Ελληνικά)", "Subtitle Cat (Greek)"),
+            ("subweb:subdl", "SubDL (διάδοχος του Subscene)", "SubDL (successor of Subscene)"), ("subweb:gs", "GreekSubtitles", "GreekSubtitles"), ("subweb:cat", "Subtitle Cat (Ελληνικά)", "Subtitle Cat (Greek)"),
             ("subweb:os", "OpenSubtitles (ιστοσελίδα)", "OpenSubtitles (web page)"), ("subweb:pod", "Podnapisi (ιστοσελίδα)", "Podnapisi (web page)"), ("subweb:s4f", "Subs4Free", "Subs4Free"),
         };
         void LocalizeNewMenus()

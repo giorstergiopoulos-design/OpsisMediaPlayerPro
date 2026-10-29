@@ -239,7 +239,7 @@
         <MenuItem Header="Μόνο OpenSubtitles" Tag="subdl:os" Click="Cmd" />
         <MenuItem Header="Subs4Free (άνοιγμα στον browser)" Tag="subdl:s4f" Click="Cmd" />
         <MenuItem Header="Ελληνικοί υπότιτλοι στον browser">
-          <MenuItem Header="GreekSubtitles" Tag="subweb:gs" Click="Cmd" /><MenuItem Header="Subtitle Cat (Ελληνικά)" Tag="subweb:cat" Click="Cmd" />
+          <MenuItem Header="SubDL (διάδοχος του Subscene)" Tag="subweb:subdl" Click="Cmd" /><MenuItem Header="GreekSubtitles" Tag="subweb:gs" Click="Cmd" /><MenuItem Header="Subtitle Cat (Ελληνικά)" Tag="subweb:cat" Click="Cmd" />
           <MenuItem Header="OpenSubtitles (ιστοσελίδα)" Tag="subweb:os" Click="Cmd" /><MenuItem Header="Podnapisi (ιστοσελίδα)" Tag="subweb:pod" Click="Cmd" /><MenuItem Header="Subs4Free" Tag="subweb:s4f" Click="Cmd" />
         </MenuItem>
         <MenuItem Header="Φάκελος αποθήκευσης υποτίτλων…" Tag="subdir" Click="Cmd" />

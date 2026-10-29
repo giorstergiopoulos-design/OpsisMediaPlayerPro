@@ -18,7 +18,7 @@ namespace MediaPlayerPro
     {
         static readonly HashSet<string> SelfTestSkip = new HashSet<string>
         {
-            "subfile", "loadpl", "savepl", "stream", "dvd", "cam", "openurl", "goto", "cv:dlg", "subdir", "subweb:gs", "subweb:cat", "subweb:os", "subweb:pod", "subweb:s4f", "cv:mp4", "cv:mp3", "cv:clip", "subdl", "subdl:pod", "subdl:os", "subdl:pick", "subdl:s4f",
+            "subfile", "loadpl", "savepl", "stream", "dvd", "cam", "openurl", "goto", "cv:dlg", "subdir", "subweb:subdl", "subweb:gs", "subweb:cat", "subweb:os", "subweb:pod", "subweb:s4f", "cv:mp4", "cv:mp3", "cv:clip", "subdl", "subdl:pod", "subdl:os", "subdl:pick", "subdl:s4f",
             "subcfg", "info", "fx", "exit", "after:exit", "after:shutdown", "listfolder", "snapclip", "welcome", "suite", "subsync", "subline", "plclear", "plrem", "stop",
         };
 

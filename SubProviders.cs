@@ -321,6 +321,7 @@ namespace MediaPlayerPro
         internal static readonly (string Id, string Name, string Url)[] WebSubSources =
         {
             ("s4f", "Subs4Free", "https://www.subs4free.info/search_report.php?search={q}&searchType=1"),
+            ("subdl", "SubDL (successor of Subscene)", "https://subdl.com/search/{q}"),
             ("gs", "GreekSubtitles", "https://www.greeksubtitles.info/?s={q}"),
             ("cat", "Subtitle Cat (Greek)", "https://www.subtitlecat.com/index.php?search={q}"),
             ("os", "OpenSubtitles (web, Greek)", "https://www.opensubtitles.org/el/search/sublanguageid-ell/moviename-{q}"),
