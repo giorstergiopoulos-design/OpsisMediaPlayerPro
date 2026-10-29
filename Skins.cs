@@ -1,4 +1,5 @@
 using System;
+using MediaPlayerPro.Conv;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -115,7 +116,7 @@ namespace MediaPlayerPro
 
         void LoadSkin()
         {
-            LoadSide(); LoadAudio();
+            LoadSide(); LoadAudio(); LocalizeNewMenus();
             clickT.Tick += (s, e) => { clickT.Stop(); Do("pp"); };
             osdT.Tick += (s, e) => { osdT.Stop(); if (Osd != null) Osd.Visibility = Visibility.Collapsed; };
             SystemEvents.UserPreferenceChanged += (s, e) => { if (autoSkin) Dispatcher.BeginInvoke(new Action(() => ApplySkin("@auto", false))); };

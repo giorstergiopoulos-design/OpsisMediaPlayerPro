@@ -1,4 +1,5 @@
 using System;
+using MediaPlayerPro.Conv;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -64,7 +65,7 @@ namespace MediaPlayerPro
 
         void LoadAudio()
         {
-            fxT.Tick += (s, e) => { fxT.Stop(); if (FxSig() != appliedSig) { Say("Εφαρμογή εφέ ήχου (σύντομη παύση, η θέση διατηρείται)"); ReplayHere(); } };
+            fxT.Tick += (s, e) => { fxT.Stop(); if (FxSig() != appliedSig) { Say(Loc.T("Εφαρμογή εφέ ήχου (σύντομη παύση, η θέση διατηρείται)", "Applying audio effect (short pause, position is kept)")); ReplayHere(); } };
             try
             {
                 if (File.Exists(AFile("audio.json"))) fx = JsonSerializer.Deserialize<AudioFx>(File.ReadAllText(AFile("audio.json"))) ?? fx;

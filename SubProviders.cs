@@ -1,4 +1,5 @@
 using System;
+using MediaPlayerPro.Conv;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -321,9 +322,9 @@ namespace MediaPlayerPro
         {
             ("s4f", "Subs4Free", "https://www.subs4free.info/search_report.php?search={q}&searchType=1"),
             ("gs", "GreekSubtitles", "https://www.greeksubtitles.info/?s={q}"),
-            ("cat", "Subtitle Cat (Ελληνικά)", "https://www.subtitlecat.com/index.php?search={q}"),
-            ("os", "OpenSubtitles (ιστοσελίδα, Ελληνικά)", "https://www.opensubtitles.org/el/search/sublanguageid-ell/moviename-{q}"),
-            ("pod", "Podnapisi (ιστοσελίδα, Ελληνικά)", "https://www.podnapisi.net/subtitles/search/?keywords={q}&language=el"),
+            ("cat", "Subtitle Cat (Greek)", "https://www.subtitlecat.com/index.php?search={q}"),
+            ("os", "OpenSubtitles (web, Greek)", "https://www.opensubtitles.org/el/search/sublanguageid-ell/moviename-{q}"),
+            ("pod", "Podnapisi (web, Greek)", "https://www.podnapisi.net/subtitles/search/?keywords={q}&language=el"),
         };
 
         void OpenWebSub(string video, string id)
@@ -331,9 +332,9 @@ namespace MediaPlayerPro
             var src = WebSubSources.FirstOrDefault(s => s.Id == id); if (src.Id == null) return;
             string kw = CleanQuery(video, out _);
             try { Process.Start(new ProcessStartInfo(src.Url.Replace("{q}", Uri.EscapeDataString(kw))) { UseShellExecute = true }); }
-            catch (Exception ex) { Say("Δεν άνοιξε ο browser: " + ex.Message + " — δοκίμασε άλλη πηγή από το μενού Υπότιτλοι"); return; }
+            catch (Exception ex) { Say(Loc.T("Δεν άνοιξε ο browser: ", "The browser did not open: ") + ex.Message + Loc.T(" — δοκίμασε άλλη πηγή από το μενού Υπότιτλοι", " — try another source from the Subtitles menu")); return; }
             WatchDownloads(video);
-            Say(src.Name + ": κατέβασε τον υπότιτλο (.zip ή .srt) — θα φορτωθεί αυτόματα. Αν η σελίδα δεν δουλεύει (anti-bot/πέσιμο), δοκίμασε μια άλλη πηγή.");
+            Say(src.Name + Loc.T(": κατέβασε τον υπότιτλο (.zip ή .srt) — θα φορτωθεί αυτόματα. Αν η σελίδα δεν δουλεύει (anti-bot/πέσιμο), δοκίμασε μια άλλη πηγή.", ": download the subtitle (.zip or .srt) — it will be loaded automatically. If the page does not work (anti-bot / down), try another source."));
         }
 
         // ---------- Subs4Free: ανοίγει στον browser σου (το site έχει προστασία anti-bot) ----------

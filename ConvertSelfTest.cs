@@ -1,4 +1,5 @@
 using System;
+using System.Windows.Controls;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,6 +13,23 @@ namespace MediaPlayerPro
 {
     public partial class MainWindow
     {
+        // Τα νέα στοιχεία μενού της 1.5.0 στα ελληνικά/αγγλικά (η υπόλοιπη εφαρμογή παραμένει ελληνική).
+        internal static readonly (string Tag, string El, string En)[] NewMenuText =
+        {
+            ("cv:dlg", "Μετατροπή βίντεο / εικόνας…", "Convert video / image…"),
+            ("subdir", "Φάκελος αποθήκευσης υποτίτλων…", "Subtitle save folder…"),
+            ("subweb:gs", "GreekSubtitles", "GreekSubtitles"), ("subweb:cat", "Subtitle Cat (Ελληνικά)", "Subtitle Cat (Greek)"),
+            ("subweb:os", "OpenSubtitles (ιστοσελίδα)", "OpenSubtitles (web page)"), ("subweb:pod", "Podnapisi (ιστοσελίδα)", "Podnapisi (web page)"), ("subweb:s4f", "Subs4Free", "Subs4Free"),
+        };
+        void LocalizeNewMenus()
+        {
+            foreach (var m in MenuBar.Items.OfType<MenuItem>().SelectMany(Flatten))
+            {
+                if (m.Tag is string tg) { var t = NewMenuText.FirstOrDefault(x => x.Tag == tg); if (t.Tag != null) m.Header = Loc.T(t.El, t.En); }
+                if (m.Header is string h && h == "Ελληνικοί υπότιτλοι στον browser") m.Header = Loc.T(h, "Greek subtitles in the browser");
+            }
+        }
+
         // Bug 6: Ambience/Surround/Dynamic Boost δεν πρέπει να ξαναρχίζουν το κομμάτι· η θέση πρέπει να συνεχίζει.
         async Task FxContinuitySelfTest(Action<string, bool, string> report)
         {

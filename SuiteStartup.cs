@@ -41,7 +41,7 @@ namespace MediaPlayerPro
         void InitSuite()
         {
             var args = Environment.GetCommandLineArgs();
-            suiteTestMode = args.Contains("--selftest") || args.Contains("--ui-demo") || args.Contains("--suite-demo");
+            suiteTestMode = args.Contains("--selftest") || args.Contains("--ui-demo") || args.Contains("--snapshots") || args.Contains("--suite-demo");
             if (!suiteTestMode)
             {
                 suiteStore = new JsonFileStore(System.IO.Path.Combine(AppDir, "suite.json"));          // μόνο η έκδοση που είδε ο χρήστης, ETag και ρυθμίσεις — τίποτα προσωπικό

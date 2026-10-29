@@ -20,8 +20,8 @@ namespace MediaPlayerPro.Conv
         public static readonly VideoFormat[] Video =
         {
             new VideoFormat { Id = "mp4",  Label = "MP4 (MPEG-4 Part 2)",    Ext = "mp4",  Mux = "mp4",  Vcodec = "mp4v", Audio = new[] { "aac", "mp3", "none", "copy" }, DefaultAudio = "aac" },
-            new VideoFormat { Id = "mkv",  Label = "MKV (VP9, δοκιμαστικό)",              Ext = "mkv",  Mux = "avformat{mux=matroska}", Vcodec = "VP90", Audio = new[] { "opus", "vorbis", "none" }, DefaultAudio = "opus" },
-            new VideoFormat { Id = "webm9",Label = "WebM (VP9 + Opus, δοκιμαστικό)",      Ext = "webm", Mux = "avformat{mux=webm}",     Vcodec = "VP90", Audio = new[] { "opus", "vorbis", "none" }, DefaultAudio = "opus" },
+            new VideoFormat { Id = "mkv",  Label = "MKV (VP9, " + Loc.T("δοκιμαστικό", "experimental") + ")",              Ext = "mkv",  Mux = "avformat{mux=matroska}", Vcodec = "VP90", Audio = new[] { "opus", "vorbis", "none" }, DefaultAudio = "opus" },
+            new VideoFormat { Id = "webm9",Label = "WebM (VP9 + Opus, " + Loc.T("δοκιμαστικό", "experimental") + ")",      Ext = "webm", Mux = "avformat{mux=webm}",     Vcodec = "VP90", Audio = new[] { "opus", "vorbis", "none" }, DefaultAudio = "opus" },
             new VideoFormat { Id = "webm8",Label = "WebM (VP8 + Vorbis)",    Ext = "webm", Mux = "avformat{mux=webm}",     Vcodec = "VP80", Audio = new[] { "vorbis", "opus", "none" }, DefaultAudio = "vorbis" },
             new VideoFormat { Id = "avi",  Label = "AVI (MPEG-4)",           Ext = "avi",  Mux = "avi",  Vcodec = "mp4v", Audio = new[] { "mp3", "none" }, DefaultAudio = "mp3" },
             new VideoFormat { Id = "avimj",Label = "AVI (Motion JPEG)",      Ext = "avi",  Mux = "avi",  Vcodec = "MJPG", Audio = new[] { "mp3", "none" }, DefaultAudio = "mp3" },
