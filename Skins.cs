@@ -55,11 +55,11 @@ namespace MediaPlayerPro
         static readonly string AppDir = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MediaPlayerPro");
         readonly DispatcherTimer clickT = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
         readonly DispatcherTimer osdT = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
-        string curSkin = "Σκούρο (MPC)", accentOverride, mode = "dark"; bool autoSkin => mode == "auto";
+        string curSkin = "Σκούρο (MPC)", accentOverride, mode = "dark", uiStyle = "classic"; bool autoSkin => mode == "auto";
 
         List<Skin> AllSkins()
         {
-            var l = new List<Skin>(BuiltIn);
+            var l = new List<Skin>(uiStyle == "wave" ? WaveSkins : BuiltIn);
             foreach (var dir in new[] { System.IO.Path.Combine(AppContext.BaseDirectory, "Skins"), System.IO.Path.Combine(AppDir, "Skins") })
                 if (Directory.Exists(dir))
                     foreach (var f in Directory.GetFiles(dir, "*.json"))
@@ -78,11 +78,11 @@ namespace MediaPlayerPro
         void ApplySkin(string name, bool announce = true)
         {
             if (name == "@auto") { mode = "auto"; name = curSkin; }
-            var sk = AllSkins().FirstOrDefault(k => k.Name == name) ?? BuiltIn[0]; curSkin = sk.Name;
+            var sk = AllSkins().FirstOrDefault(k => k.Name == name) ?? (uiStyle == "wave" ? WaveSkins[0] : BuiltIn[0]); curSkin = sk.Name;
             bool wantLight = mode == "light" || (mode == "auto" && SystemLight());
             if (wantLight != (Luma(sk.Bg) > 0.5))   // light/dark mode: ίδιο θέμα (accent, σχήμα, γραμματοσειρά) με φωτεινή ή σκούρη παλέτα
             {
-                var b = wantLight ? BuiltIn.First(k => k.Name == "Φωτεινό") : BuiltIn[0];
+                var b = uiStyle == "wave" ? (wantLight ? WaveSkins.First(k => k.Name == "Wave Light") : WaveSkins[0]) : (wantLight ? BuiltIn.First(k => k.Name == "Φωτεινό") : BuiltIn[0]);
                 sk = new Skin { Name = sk.Name, Bg = b.Bg, Bar = b.Bar, Fg = b.Fg, Muted = b.Muted, Hover = b.Hover, Accent = sk.Accent, Radius = sk.Radius, Font = sk.Font };
             }
             string acc = accentOverride ?? sk.Accent;
@@ -108,6 +108,19 @@ namespace MediaPlayerPro
             catch { Say("Μη έγκυρο θέμα"); }
         }
 
+        /// <summary>Εναλλαγή Classic / Wave χωρίς επανεκκίνηση: αλλάζει η σειρά θεμάτων (παλέτες του Waveframe) και η στρογγυλότητα των ελέγχων.</summary>
+        void SetInterface(string style)
+        {
+            style = style == "wave" ? "wave" : "classic";
+            if (uiStyle == style) return;
+            uiStyle = style;
+            try { Directory.CreateDirectory(AppDir); File.WriteAllText(System.IO.Path.Combine(AppDir, "ui.txt"), uiStyle); } catch { }
+            accentOverride = null;
+            ApplySkin(uiStyle == "wave" ? WaveSkins[0].Name : BuiltIn[0].Name, false);
+            FillSkins();
+            Say(Loc.T("Εμφάνιση: ", "Interface: ") + (uiStyle == "wave" ? "Wave" : "Classic"));
+        }
+
         void NextSkin()
         {
             var l = AllSkins(); int i = l.FindIndex(k => k.Name == curSkin);
@@ -123,6 +136,8 @@ namespace MediaPlayerPro
             try
             {
                 var a = System.IO.Path.Combine(AppDir, "accent.txt"); if (File.Exists(a)) { var h = File.ReadAllText(a).Trim(); accentOverride = h.StartsWith("#") ? h : null; }
+                var uf = System.IO.Path.Combine(AppDir, "ui.txt"); if (File.Exists(uf)) uiStyle = File.ReadAllText(uf).Trim() == "wave" ? "wave" : "classic";
+                if (uiStyle == "wave" && !File.Exists(System.IO.Path.Combine(AppDir, "skin.txt"))) curSkin = WaveSkins[0].Name;
                 var mf = System.IO.Path.Combine(AppDir, "mode.txt"); if (File.Exists(mf)) mode = File.ReadAllText(mf).Trim();
                 var f = System.IO.Path.Combine(AppDir, "skin.txt"); ApplySkin(File.Exists(f) ? File.ReadAllText(f).Trim() : curSkin, false);
             }
@@ -132,6 +147,13 @@ namespace MediaPlayerPro
         void FillSkins()
         {
             SkinMenu.Items.Clear();
+            // Εμφάνιση της εφαρμογής: Classic ή Wave (τύπου Waveframe) — αλλάζει ζωντανά, χωρίς επανεκκίνηση
+            var ifc = new MenuItem { Header = Loc.T("Εμφάνιση εφαρμογής", "Interface") };
+            foreach (var (key, el, en) in new[] { ("classic", "Classic (MPC)", "Classic (MPC)"), ("wave", "Wave (τύπου Waveframe)", "Wave (Waveframe style)") })
+            { var kk = key; var mi = new MenuItem { Header = Loc.T(el, en), IsCheckable = false, IsChecked = uiStyle == kk }; mi.Click += (s, e) => SetInterface(kk); ifc.Items.Add(mi); }
+            SkinMenu.Items.Add(ifc);
+            var settingsItem = new MenuItem { Header = Loc.T("Ρυθμίσεις…", "Settings…") }; settingsItem.Click += (s, e) => ShowSettingsWindow();
+            SkinMenu.Items.Add(settingsItem); SkinMenu.Items.Add(new Separator());
             // Η λειτουργία light / dark / αυτόματη ΔΕΝ είναι πια στο μενού: έχει δικό της κουμπί στη γραμμή ελέγχου (ModeBtn) και Ctrl+Shift+L.
             foreach (var k in AllSkins().Where(z => z.Name != "Φωτεινό")) { var n = k.Name; var m = new MenuItem { Header = n, IsChecked = n == curSkin }; m.Click += (s, e) => ApplySkin(n); SkinMenu.Items.Add(m); }
             var ac = new MenuItem { Header = "Χρώμα έμφασης" };

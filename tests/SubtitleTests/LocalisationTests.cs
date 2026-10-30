@@ -16,6 +16,7 @@ namespace MediaPlayerPro.Tests
         [Theory]
         [InlineData("ConvertWindow.cs")]
         [InlineData("ConvertCore/ConvertCore.cs")]
+        [InlineData("SettingsWindow.cs")]
         public void NoUntranslatedGreekLiterals(string file)
         {
             var src = System.IO.File.ReadAllText(System.IO.Path.Combine(Root(), file));
@@ -26,7 +27,7 @@ namespace MediaPlayerPro.Tests
         [Fact] public void EveryPairHasBothLanguages()
         {
             int n = 0;
-            foreach (var f in new[] { "ConvertWindow.cs", "ConvertCore/ConvertCore.cs", "ConvertSelfTest.cs", "SubProviders.cs", "Subtitles.cs" })
+            foreach (var f in new[] { "ConvertWindow.cs", "ConvertCore/ConvertCore.cs", "ConvertSelfTest.cs", "SubProviders.cs", "Subtitles.cs", "SettingsWindow.cs" })
             {
                 var src = System.IO.File.ReadAllText(System.IO.Path.Combine(Root(), f));
                 foreach (var rx in new[] { Pair, Pair3 }) foreach (Match m in rx.Matches(src))
