@@ -24,7 +24,8 @@ OutputDir=..\Output
 OutputBaseFilename=OpsisMediaPlayerPro-Setup
 Compression=lzma2
 SolidCompression=yes
-PrivilegesRequired=lowest
+PrivilegesRequired=admin
+UsePreviousAppDir=no
 ArchitecturesInstallIn64BitMode=x64compatible
 ArchitecturesAllowed=x64compatible
 UninstallDisplayName={#MyAppName}
@@ -60,13 +61,32 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"; Tasks: deskto
 
 [Registry]
 ; Only a per-user "Open with" entry for the common extensions: it does NOT take over the default player, and it is removed on uninstall.
-Root: HKCU; Subkey: "Software\Classes\Applications\{#MyAppExe}\shell\open\command"; ValueType: string; ValueData: """{app}\{#MyAppExe}"" ""%1"""; Tasks: openwith; Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\Applications\{#MyAppExe}"; ValueType: string; ValueName: "FriendlyAppName"; ValueData: "{#MyAppName}"; Tasks: openwith
-Root: HKCU; Subkey: "Software\Classes\.mp4\OpenWithList\{#MyAppExe}"; Flags: uninsdeletekey; Tasks: openwith
-Root: HKCU; Subkey: "Software\Classes\.mkv\OpenWithList\{#MyAppExe}"; Flags: uninsdeletekey; Tasks: openwith
-Root: HKCU; Subkey: "Software\Classes\.avi\OpenWithList\{#MyAppExe}"; Flags: uninsdeletekey; Tasks: openwith
-Root: HKCU; Subkey: "Software\Classes\.mp3\OpenWithList\{#MyAppExe}"; Flags: uninsdeletekey; Tasks: openwith
-Root: HKCU; Subkey: "Software\Classes\.flac\OpenWithList\{#MyAppExe}"; Flags: uninsdeletekey; Tasks: openwith
+Root: HKLM; Subkey: "Software\Classes\Applications\{#MyAppExe}\shell\open\command"; ValueType: string; ValueData: """{app}\{#MyAppExe}"" ""%1"""; Tasks: openwith; Flags: uninsdeletekey
+Root: HKLM; Subkey: "Software\Classes\Applications\{#MyAppExe}"; ValueType: string; ValueName: "FriendlyAppName"; ValueData: "{#MyAppName}"; Tasks: openwith
+Root: HKLM; Subkey: "Software\Classes\.mp4\OpenWithList\{#MyAppExe}"; Flags: uninsdeletekey; Tasks: openwith
+Root: HKLM; Subkey: "Software\Classes\.mkv\OpenWithList\{#MyAppExe}"; Flags: uninsdeletekey; Tasks: openwith
+Root: HKLM; Subkey: "Software\Classes\.avi\OpenWithList\{#MyAppExe}"; Flags: uninsdeletekey; Tasks: openwith
+Root: HKLM; Subkey: "Software\Classes\.mp3\OpenWithList\{#MyAppExe}"; Flags: uninsdeletekey; Tasks: openwith
+Root: HKLM; Subkey: "Software\Classes\.flac\OpenWithList\{#MyAppExe}"; Flags: uninsdeletekey; Tasks: openwith
 
 [Run]
 Filename: "{app}\{#MyAppExe}"; Description: "{#MyAppName}"; Flags: nowait postinstall skipifsilent
+
+[Code]
+{ Upgrade from the old per-user install (%LocalAppData%\Programs): its uninstaller runs silently first; settings in %AppData%\MediaPlayerPro are not touched }
+procedure RemoveOldPerUserInstall;
+var
+  U: String;
+  Code: Integer;
+begin
+  if RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{B7E1D2C4-5A36-4F0B-9C58-2E4D7F61A903}_is1', 'UninstallString', U) then
+  begin
+    U := RemoveQuotes(U);
+    if (U <> '') and FileExists(U) then Exec(U, '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART', '', SW_HIDE, ewWaitUntilTerminated, Code);
+  end;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if CurStep = ssInstall then RemoveOldPerUserInstall;
+end;
