@@ -73,7 +73,7 @@ namespace MediaPlayerPro
                         while (sw.Elapsed.TotalSeconds < 30) { await Task.Delay(200); if (p.State == VLCState.Ended || p.State == VLCState.Error || p.State == VLCState.Stopped) break; }
                         p.Stop();
                     }
-                    var (d0, f0, h0, w0) = ConvertRunner.Probe(lib, src);
+                    var (d0, f0, h0, w0) = await ConvertRunner.ProbeAsync(lib, src);
                     if (h0 == 0 || d0 < 3) { report("converter test source", false, $"could not build the test clip ({d0:0.0}s {w0}x{h0})"); return; }
                     var outDir = System.IO.Path.Combine(dir, "out"); var before = new FileInfo(src).Length;
                     foreach (var f in Formats.Video)
@@ -83,7 +83,7 @@ namespace MediaPlayerPro
                         string info = j.State;
                         if (j.State == "done")
                         {
-                            var (d, fp, hh, ww2) = ConvertRunner.Probe(lib, j.Result);
+                            var (d, fp, hh, ww2) = await ConvertRunner.ProbeAsync(lib, j.Result);
                             // γνωστές ιδιορρυθμίες που μετρήθηκαν: ASF κρατά 2 s preroll (διάρκεια ≈ 1 s για κλιπ 3 s)· το VP9 του libvlc κόβει ~0,9 s στο τέλος·
                             // TS/OGV δεν δίνουν ανάλυση στο Parse· AVI/WMV στρογγυλεύουν το ύψος σε πολλαπλάσιο του 16
                             double exp = f.Id == "wmv" ? 1.0 : f.Vcodec == "VP90" ? 2.1 : 3.0;
@@ -99,6 +99,11 @@ namespace MediaPlayerPro
                         int count = j.State == "done" ? (Directory.Exists(j.Result) ? Directory.GetFiles(j.Result).Length : File.Exists(j.Result) ? 1 : 0) : 0;
                         report("convert → images (" + kind + ")", j.State == "done" && count >= 1 && (kind != OutKind.FrameSequence || count >= 3), j.State == "done" ? count + " file(s)" : j.Error);
                     }
+                    // ακύρωση: δεν μένει μισό αρχείο εξόδου
+                    var cancelDir = System.IO.Path.Combine(dir, "cancel"); var cts = new CancellationTokenSource(); cts.Cancel();
+                    var jc = new ConvertJob { Source = src, OutDir = cancelDir, Opt = new ConvertOptions { Format = "mp4", Audio = "aac" } };
+                    await ConvertRunner.Run(jc, _ => { }, cts.Token);
+                    report("cancelled conversion leaves no partial file", jc.State == "cancelled" && (!Directory.Exists(cancelDir) || Directory.GetFiles(cancelDir).Length == 0), jc.State);
                     report("original untouched by conversions", new FileInfo(src).Length == before, "source size unchanged");
                 }
             }

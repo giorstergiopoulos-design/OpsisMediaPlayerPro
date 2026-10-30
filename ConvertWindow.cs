@@ -37,8 +37,8 @@ namespace MediaPlayerPro
             var sp = new StackPanel { Margin = new Thickness(14) };
             sp.Children.Add(new TextBlock { Text = Path.GetFileName(source), FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis, Margin = new Thickness(0, 0, 0, 8) });
             kind.ItemsSource = new[] { T("Βίντεο", "Video"), T("Ακολουθία καρέ (εικόνες)", "Frame sequence (images)"), T("Poster (ένα καρέ)", "Poster (one frame)"), "Contact sheet", };
-            kind.SelectedIndex = 0; kind.SelectionChanged += (_, _) => Sync();
-            fmt.ItemsSource = Formats.Video.Select(f => f.Label).ToList(); fmt.SelectedIndex = 0; fmt.SelectionChanged += (_, _) => Sync();
+            kind.SelectedIndex = 0; kind.SelectionChanged += (_, _) => Sync(false);
+            fmt.ItemsSource = Formats.Video.Select(f => f.Label).ToList(); fmt.SelectedIndex = 0; fmt.SelectionChanged += (_, _) => Sync(true);
             hgt.ItemsSource = Formats.Heights.Select(h => h == 0 ? T("Όπως η πηγή", "Same as source") : h + "p").ToList(); hgt.SelectedIndex = 0;
             fps.ItemsSource = Formats.Fps.Select(h => h == 0 ? T("Όπως η πηγή", "Same as source") : h + " fps").ToList(); fps.SelectedIndex = 0;
             qual.ItemsSource = new[] { T("Χαμηλή (μικρό αρχείο)", "Low (small file)"), T("Μεσαία", "Medium"), T("Υψηλή", "High") }; qual.SelectedIndex = 1;
@@ -73,14 +73,14 @@ namespace MediaPlayerPro
         }
         static void Show(UIElement e, bool v) { if (e.GetType() == typeof(DockPanel)) { } var p = (e as FrameworkElement)?.Parent as UIElement; (p ?? e).Visibility = v ? Visibility.Visible : Visibility.Collapsed; }
 
-        void Sync()
+        void Sync(bool formatChanged = true)
         {
             bool vid = kind.SelectedIndex == 0, seq = kind.SelectedIndex == 1, pos = kind.SelectedIndex == 2, sh = kind.SelectedIndex == 3;
             foreach (var x in new UIElement[] { fmt, aud, hgt, fps, qual }) Show(x, vid);
             Show(img, !vid && !sh); Show(every, seq); Show((UIElement)((FrameworkElement)cols.Parent), sh || pos);
             var f = Formats.Video[Math.Max(0, fmt.SelectedIndex)];
             var labels = new Dictionary<string, string> { ["aac"] = "AAC", ["mp3"] = "MPEG audio (MP2/MP3)", ["opus"] = "Opus", ["vorbis"] = "Vorbis", ["wma"] = "WMA", ["none"] = T("Χωρίς ήχο", "No audio"), ["copy"] = T("Αντιγραφή όπως είναι", "Copy as is") };
-            aud.ItemsSource = f.Audio.Select(x => labels[x]).ToList(); aud.SelectedIndex = Math.Max(0, Array.IndexOf(f.Audio, f.DefaultAudio));
+            if (formatChanged || aud.Items.Count == 0) { aud.ItemsSource = f.Audio.Select(x => labels[x]).ToList(); aud.SelectedIndex = Math.Max(0, Array.IndexOf(f.Audio, f.DefaultAudio)); }       // η αλλαγή «Έξοδος» δεν ξαναγυρίζει την επιλογή ήχου στην προεπιλογή
         }
 
         static double? Num(string s) => double.TryParse((s ?? "").Trim().Replace(',', '.'), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : null;
@@ -96,6 +96,7 @@ namespace MediaPlayerPro
             if (!string.IsNullOrWhiteSpace(end.Text)) { var v = Num(end.Text); if (v == null) { status.Text = T("Μη έγκυρο τέλος.", "Invalid end."); return; } o.EndSec = v.Value; }
             var ev = new[] { (1.0, 0), (2.0, 0), (5.0, 0), (10.0, 0), (30.0, 0), (0.0, 10), (0.0, 25) }[Math.Max(0, every.SelectedIndex)]; o.EverySeconds = ev.Item1; o.EveryFrames = ev.Item2;
             if (int.TryParse(cols.Text, out var c)) o.SheetColumns = c; if (int.TryParse(rowsBox.Text, out var r)) o.SheetRows = r; var pa = Num(posterAt.Text); if (pa != null) o.PosterAtSec = pa.Value;
+            if (string.IsNullOrWhiteSpace(dir.Text) || dir.Text.IndexOfAny(Path.GetInvalidPathChars()) >= 0) { status.Text = T("Διάλεξε φάκελο εξόδου (το πεδίο είναι κενό ή έχει μη έγκυρους χαρακτήρες).", "Choose an output folder (the field is empty or has invalid characters)."); return; }
             var errs = ConvertCore.Validate(o, 0, 0); if (errs.Count > 0) { status.Text = string.Join("; ", errs); return; }
             jobs.Add(new ConvertJob { Source = source, OutDir = dir.Text, Opt = o }); Refresh(); status.Text = T("Προστέθηκε στην ουρά.", "Added to the queue.");
         }

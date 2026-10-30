@@ -69,10 +69,9 @@ namespace MediaPlayerPro
             catch { return new SubCfg(); }
         }
 
-        void AutoSub(string path) { if (LoadCfg().AutoDownload) _ = DownloadSubs(path); }
+        void AutoSub(string path) { if (LoadCfg().AutoDownload && FindSrt(path) == null) _ = DownloadSubs(path); }      // υπάρχει ήδη υπότιτλος (δίπλα στο βίντεο ή στον φάκελο του χρήστη) = καμία νέα λήψη
 
-        static string FindSrt(string video) =>
-            video == null ? null : new[] { ".srt", ".el.srt", ".en.srt", ".synced.srt" }.Select(x => System.IO.Path.ChangeExtension(video, null) + x).FirstOrDefault(File.Exists);
+        string FindSrt(string video) { var c = LoadCfg(); return SubLocation.Find(video, c.SubFolder, (c.Languages ?? "el,en").Split(',')); }
 
         static int CodePage(string l) => l == "el" ? 1253 : "ru bg sr uk".Contains(l) ? 1251 : l == "tr" ? 1254 : l == "he" ? 1255 : l == "ar" ? 1256 :
                                          "pl cs sk hu ro hr sl".Contains(l) ? 1250 : 1252;

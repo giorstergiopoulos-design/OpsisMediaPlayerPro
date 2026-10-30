@@ -284,7 +284,7 @@ namespace MediaPlayerPro
             var sc = LoadCfg(); string stem = System.IO.Path.GetFileNameWithoutExtension(video);
             bool primary = string.Equals(lang, (sc.Languages ?? "").Split(',')[0].Trim(), StringComparison.OrdinalIgnoreCase);
             string folder = !string.IsNullOrWhiteSpace(sc.SubFolder) ? sc.SubFolder : System.IO.Path.GetDirectoryName(video);
-            string target = System.IO.Path.Combine(folder, stem + (sc.PlainName && primary ? "" : "." + lang) + ".srt");
+            string target = SubLocation.TargetPath(video, folder, lang, sc.PlainName, primary);           // ποτέ δεν αντικαθιστά υπάρχον «ταινία.srt»
             try { Directory.CreateDirectory(folder); } catch { }
             try { File.WriteAllText(target, text, new UTF8Encoding(true)); }
             catch { var dir = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(CfgFile), "subs"); Directory.CreateDirectory(dir); target = System.IO.Path.Combine(dir, System.IO.Path.GetFileName(target)); File.WriteAllText(target, text, new UTF8Encoding(true)); }

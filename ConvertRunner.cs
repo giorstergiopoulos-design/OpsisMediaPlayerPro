@@ -20,9 +20,11 @@ namespace MediaPlayerPro
     /// <summary>Εκτελεί μια εργασία με libvlc. Το αρχείο-πηγή ανοίγεται μόνο για ανάγνωση και δεν τροποποιείται ποτέ.</summary>
     public static class ConvertRunner
     {
-        public static (double dur, double fps, int h, int w) Probe(LibVLC lib, string path)
+        /// <summary>Ασύγχρονα (ποτέ Wait στο UI thread): διάρκεια, fps, ανάλυση.</summary>
+        public static async Task<(double dur, double fps, int h, int w)> ProbeAsync(LibVLC lib, string path)
         {
-            using var m = new Media(lib, path, FromType.FromPath); m.Parse(MediaParseOptions.ParseLocal).Wait(10000);
+            using var m = new Media(lib, path, FromType.FromPath);
+            await Task.WhenAny(m.Parse(MediaParseOptions.ParseLocal), Task.Delay(10000));
             double fps = 0; int h = 0, w = 0;
             foreach (var t in m.Tracks) if (t.TrackType == TrackType.Video) { h = (int)t.Data.Video.Height; w = (int)t.Data.Video.Width; if (t.Data.Video.FrameRateDen > 0) fps = (double)t.Data.Video.FrameRateNum / t.Data.Video.FrameRateDen; break; }
             return (m.Duration / 1000.0, fps, h, w);
@@ -30,13 +32,13 @@ namespace MediaPlayerPro
 
         public static async Task Run(ConvertJob job, Action<ConvertJob> changed, CancellationToken ct)
         {
-            string tmpDir = null;
+            string tmpDir = null, partial = null;             // partial = μισό αρχείο εξόδου που σβήνεται σε ακύρωση/σφάλμα
             try
             {
                 if (!File.Exists(job.Source)) throw new FileNotFoundException(job.Source);
                 job.State = "running"; changed(job);
                 using var lib = new LibVLC("--quiet");
-                var (dur, fps, sh, sw0) = Probe(lib, job.Source);
+                var (dur, fps, sh, sw0) = await ProbeAsync(lib, job.Source);
                 var errs = ConvertCore.Validate(job.Opt, dur, fps); if (errs.Count > 0) throw new InvalidOperationException(string.Join("; ", errs));
                 var (st, sp) = ConvertCore.Range(job.Opt.StartSec, job.Opt.EndSec, dur);
                 double len = ConvertCore.EffectiveLength(st, sp, dur);
@@ -47,7 +49,7 @@ namespace MediaPlayerPro
                 {
                     outPath = ConvertCore.UniquePath(job.OutDir, baseName, ConvertCore.Suffix(o), Formats.Find(o.Format).Ext);
                     if (ConvertCore.SameFile(outPath, job.Source)) throw new InvalidOperationException("output equals source");
-                    sout = ConvertCore.BuildVideoSout(o, outPath, sh);
+                    sout = ConvertCore.BuildVideoSout(o, outPath, sh); partial = outPath;
                 }
                 else
                 {
@@ -66,7 +68,7 @@ namespace MediaPlayerPro
                     await Task.Delay(500);
                     while (true)
                     {
-                        if (ct.IsCancellationRequested) { p.Stop(); job.State = "cancelled"; job.Error = "cancelled"; changed(job); return; }
+                        if (ct.IsCancellationRequested) { p.Stop(); await Task.Delay(300); TryDelete(partial); job.State = "cancelled"; job.Error = "cancelled"; changed(job); return; }
                         var s = p.State; if (s == VLCState.Ended || s == VLCState.Stopped) break; if (s == VLCState.Error) throw new InvalidOperationException("libvlc error");
                         if (clock.Elapsed.TotalHours > 6) throw new TimeoutException();
                         if (len > 0) job.Progress = Math.Max(0, Math.Min(0.99, (p.Time / 1000.0 - st) / len)); else job.Progress = p.Position;
@@ -94,7 +96,7 @@ namespace MediaPlayerPro
                 }
                 job.Progress = 1; job.State = "done"; changed(job);
             }
-            catch (Exception ex) { job.State = "failed"; job.Error = ex.Message; changed(job); }
+            catch (Exception ex) { TryDelete(partial); job.State = "failed"; job.Error = ex.Message; changed(job); }
             finally { if (tmpDir != null) try { Directory.Delete(tmpDir, true); } catch { } }
         }
 

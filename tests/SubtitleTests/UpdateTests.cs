@@ -109,3 +109,31 @@ namespace MediaPlayerPro.Tests
         }
     }
 }
+
+namespace MediaPlayerPro.Tests
+{
+    public class SubLocationTests
+    {
+        [Fact] public void FindsSubtitleInUserFolder()
+        {
+            var have = new System.Collections.Generic.HashSet<string> { @"D:\Subs\Movie.el.srt" };
+            Assert.Equal(@"D:\Subs\Movie.el.srt", MediaPlayerPro.SubLocation.Find(@"C:\V\Movie.mkv", @"D:\Subs", new[] { "el", "en" }, have.Contains));
+            Assert.Null(MediaPlayerPro.SubLocation.Find(@"C:\V\Movie.mkv", "", new[] { "el" }, have.Contains));
+        }
+        [Fact] public void BesideVideoWinsAndPlainNameIsFound()
+        {
+            var have = new System.Collections.Generic.HashSet<string> { @"C:\V\Movie.srt", @"D:\Subs\Movie.srt" };
+            Assert.Equal(@"C:\V\Movie.srt", MediaPlayerPro.SubLocation.Find(@"C:\V\Movie.mkv", @"D:\Subs", new[] { "el" }, have.Contains));
+        }
+        [Fact] public void PlainNameNeverOverwritesExisting()
+        {
+            var have = new System.Collections.Generic.HashSet<string>();
+            Assert.Equal(@"C:\V\Movie.srt", MediaPlayerPro.SubLocation.TargetPath(@"C:\V\Movie.mkv", null, "el", true, true, have.Contains));
+            have.Add(@"C:\V\Movie.srt");
+            Assert.Equal(@"C:\V\Movie.el.srt", MediaPlayerPro.SubLocation.TargetPath(@"C:\V\Movie.mkv", null, "el", true, true, have.Contains));
+            have.Add(@"C:\V\Movie.el.srt");
+            Assert.Equal(@"C:\V\Movie.el (2).srt", MediaPlayerPro.SubLocation.TargetPath(@"C:\V\Movie.mkv", null, "el", true, true, have.Contains));
+            Assert.Equal(@"C:\V\Movie.en.srt", MediaPlayerPro.SubLocation.TargetPath(@"C:\V\Movie.mkv", null, "en", true, false, have.Contains));
+        }
+    }
+}
