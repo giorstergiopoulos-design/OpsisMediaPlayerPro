@@ -54,6 +54,23 @@ namespace MediaPlayerPro
                     }
                 }
                 catch (Exception ex) { log.AppendLine("SNAPSHOT ERROR " + ex); }
+                try
+                {
+                    // Wave + παράθυρο ρυθμίσεων (σκούρο και φωτεινό)· στο τέλος επαναφέρεται η αρχική εμφάνιση
+                    string originalUi = uiStyle; SetInterface("wave");
+                    foreach (var m in new[] { "dark", "light" })
+                    {
+                        mode = m; ApplySkin(curSkin, false); await System.Threading.Tasks.Task.Delay(500);
+                        SaveShot((FrameworkElement)Content, System.IO.Path.Combine(dir, "player-wave-" + m + ".png"));
+                        foreach (var (tab, name) in new[] { (0, "appearance"), (3, "subtitles") })
+                        {
+                            ShowSettingsWindow(tab); await System.Threading.Tasks.Task.Delay(500);
+                            SaveShot(settingsWin, System.IO.Path.Combine(dir, "settings-" + name + "-" + m + ".png")); settingsWin.Close(); await System.Threading.Tasks.Task.Delay(200);
+                        }
+                    }
+                    SetInterface(originalUi);
+                }
+                catch (Exception ex) { log.AppendLine("SNAPSHOT WAVE ERROR " + ex); }
                 File.WriteAllText(System.IO.Path.Combine(dir, "snapshots.log"), log.ToString());
                 mode = original; ApplySkin(curSkin, false); Environment.Exit(0);
             };

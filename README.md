@@ -10,7 +10,7 @@
 <p align="center">
   <img alt="Platform" src="https://img.shields.io/badge/platform-Windows%2010%2F11-0078D6?logo=windows&logoColor=white" />
   <img alt=".NET" src="https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white" />
-  <img alt="Version" src="https://img.shields.io/badge/version-1.5.0-00B4D8" />
+  <img alt="Version" src="https://img.shields.io/badge/version-1.6.0-00B4D8" />
   <img alt="License" src="https://img.shields.io/badge/license-MIT-green" />
 </p>
 
@@ -44,6 +44,15 @@
 - **Αυτόματη λήψη υποτίτλων** (ενεργή από προεπιλογή): όταν ανοίγεις βίντεο χωρίς αρχείο υποτίτλων, στέλνεται ένα καθαρισμένο όνομα (και, για το OpenSubtitles, ένα hash του αρχείου) στο Podnapisi/OpenSubtitles. Για αρχεία **ήχου** δεν γίνεται αναζήτηση.
 - **Πληροφορίες ταινίας/σειράς** (ενεργές από προεπιλογή): ο καθαρισμένος τίτλος αποστέλλεται σε TVmaze, iTunes και Wikipedia για εξώφυλλο και περιγραφή.
 - Και τα δύο κλείνουν (Ρυθμίσεις → Υπότιτλοι → Ρυθμίσεις υποτίτλων, και Προβολή → Πλευρικό πάνελ). Δεν υπάρχει τηλεμετρία.
+
+### Wave και ρυθμίσεις / Wave and settings
+
+Θέματα -> Εμφάνιση εφαρμογής -> Classic ή Wave (άμεση αλλαγή) και Θέματα -> Ρυθμίσεις… (κατηγορίες). / Themes -> Interface -> Classic or Wave (live) and Themes -> Settings… (categories).
+
+| Wave σκούρο / dark | Wave φωτεινό / light |
+|---|---|
+| ![Wave dark](docs/img/player-wave-dark.png) | ![Wave light](docs/img/player-wave-light.png) |
+| ![Settings dark](docs/img/settings-appearance-dark.png) | ![Settings light](docs/img/settings-appearance-light.png) |
 
 ### Στιγμιότυπα / Screenshots
 

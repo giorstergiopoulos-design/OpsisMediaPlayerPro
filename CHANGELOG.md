@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.6.0 — 2026-10-30
+- **Unified update popup** (same buttons and messages as the other Opsis apps): 30 s after start and every 24 h (ETag, once per version) the toast offers **Install / Later / Skip this version / What's new**. Install downloads only from this repository's release, checks SHA-256 (refuses and deletes on a mismatch, never runs without a digest), then a helper re-checks the hash, asks for administrator rights (UAC), installs silently into Program Files and reopens the player. Every stage goes to `%LocalAppData%\OpsisMediaPlayerPro\update\last-update.log`; a failed update is reported on the next start. Tests with a fake HTTP layer.
+- **Wave interface**: a second look based on the Waveframe palettes (20 themes generated from Waveframe's `styles.css`, rounded controls). Themes -> Interface -> Classic (MPC) / Wave switches live, no restart.
+- **Settings window by category** (Themes -> Settings...): Appearance, Audio, Video, Subtitles, Converter, Updates (Greek and English).
+- **Installer in Program Files** (administrator, `{autopf}`), "Open with" entries in HKLM; an old per-user install is removed silently first, settings in `%AppData%\MediaPlayerPro` stay. **NOT VERIFIED**: compiled, not run on a clean or an upgraded machine.
+- **Subtitles**: an existing subtitle next to the video or in your subtitle folder is found, so nothing is downloaded again on every play; "plain name" never overwrites an existing `movie.srt`. Subtitle files and zip entries are limited to 5 MB by the real byte count (zip bomb), entry names with `..`/absolute paths are ignored, nothing is extracted to disk.
+- **Converter**: a cancelled or failed conversion deletes its half-written file; the media probe no longer blocks the UI thread; changing "Output" keeps the audio choice; an empty/invalid output folder gives a clear message.
+- **Security**: `explorer.exe`, `notepad.exe`, `shutdown`, `powershell.exe` start by full Windows path; the family window launches only an existing local full-path `.exe`.
+- Tests: 153 unit tests; `--selftest` 119 passed, 0 failed.
+- Not done (1.6.1): real 150 % DPI and RTL runs, click-through of every old menu with UI Automation, Windows 11 style rows in the old dialogs, live audio effects without the short stream restart (libvlc limit), VP9 ~0.9 s shorter output, screenshot of the update toast.
+
 ## 1.5.0 — 2026-10-29
 - **Converter** (Tools → "Convert video / image…"): MP4, WebM (VP8, VP9), MKV (VP9), AVI (MPEG-4, Motion JPEG), WMV, TS, OGV; resolution, fps, quality, audio codec (AAC/MPEG audio/Opus/Vorbis/WMA/copy/none); image outputs PNG/JPEG: frame sequence (every N seconds/frames, with a range), poster frame, contact sheet; trim from A-B or typed seconds; queue with progress, ETA and cancel; names get a suffix and never overwrite; the original is never touched. Only formats the bundled libvlc 3.0.21 really produces are offered (see docs/CONVERTER.md). **Fixed:** the old "Convert to MP4 (H.264)" produced an empty file — H.264/H.265, GIF and WebP are not available in this libvlc and are not offered.
 - **Encodes go to `Videos\Opsis Media Player`** (created automatically, changeable in the dialog and used as the start folder of the MP3/clip export).
