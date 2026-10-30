@@ -44,3 +44,23 @@ namespace MediaPlayerPro
         }
     }
 }
+
+namespace MediaPlayerPro
+{
+    /// <summary>Όρια για μη αξιόπιστα δεδομένα (αρχεία από το διαδίκτυο): ένας υπότιτλος ή ένα zip δεν μπορεί να φουσκώσει τη μνήμη (zip bomb / ψευδές μέγεθος στην κεφαλίδα).</summary>
+    public static class SubLimits
+    {
+        public const int MaxSubtitleBytes = 5 * 1024 * 1024;
+
+        /// <summary>Διαβάζει το πολύ max bytes· πετά InvalidDataException αν υπάρχουν περισσότερα (μετριούνται τα πραγματικά bytes, όχι η κεφαλίδα).</summary>
+        public static byte[] ReadLimited(System.IO.Stream s, int max = MaxSubtitleBytes)
+        {
+            var ms = new System.IO.MemoryStream(); var buf = new byte[81920]; int n;
+            while ((n = s.Read(buf, 0, buf.Length)) > 0) { if (ms.Length + n > max) throw new System.IO.InvalidDataException("Subtitle larger than " + max / 1024 / 1024 + " MB"); ms.Write(buf, 0, n); }
+            return ms.ToArray();
+        }
+
+        /// <summary>Το όνομα μέσα στο zip είναι μόνο ετικέτα (δεν εξάγουμε αρχεία στον δίσκο)· τα ονόματα με διαδρομές «..» απορρίπτονται παρ' όλα αυτά.</summary>
+        public static bool SafeEntryName(string fullName) => !string.IsNullOrEmpty(fullName) && !fullName.Contains("..") && !System.IO.Path.IsPathRooted(fullName);
+    }
+}

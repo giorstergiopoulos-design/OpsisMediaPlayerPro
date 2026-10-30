@@ -152,3 +152,27 @@ namespace MediaPlayerPro.Tests
         }
     }
 }
+
+namespace MediaPlayerPro.Tests
+{
+    public class SubLimitsTests
+    {
+        [Fact] public void ReadLimitedRefusesOversizedStreams()
+        {
+            Assert.Equal(1000, MediaPlayerPro.SubLimits.ReadLimited(new System.IO.MemoryStream(new byte[1000]), 2000).Length);
+            Assert.Throws<System.IO.InvalidDataException>(() => MediaPlayerPro.SubLimits.ReadLimited(new System.IO.MemoryStream(new byte[3000]), 2000));
+        }
+        [Fact] public void ZipBombEntryIsStoppedByRealByteCount()
+        {
+            var ms = new System.IO.MemoryStream();
+            using (var z = new System.IO.Compression.ZipArchive(ms, System.IO.Compression.ZipArchiveMode.Create, true)) { var e = z.CreateEntry("bomb.srt"); using var w = e.Open(); w.Write(new byte[10 * 1024 * 1024]); }
+            ms.Position = 0; using var zr = new System.IO.Compression.ZipArchive(ms);
+            using var s = zr.Entries[0].Open();
+            Assert.Throws<System.IO.InvalidDataException>(() => MediaPlayerPro.SubLimits.ReadLimited(s));
+        }
+        [Fact] public void EntryNamesWithTraversalAreRejected()
+        {
+            Assert.True(MediaPlayerPro.SubLimits.SafeEntryName("Show.S01E01.srt")); Assert.False(MediaPlayerPro.SubLimits.SafeEntryName("../evil.srt")); Assert.False(MediaPlayerPro.SubLimits.SafeEntryName(@"C:\evil.srt")); Assert.False(MediaPlayerPro.SubLimits.SafeEntryName(""));
+        }
+    }
+}

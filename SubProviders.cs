@@ -136,10 +136,10 @@ namespace MediaPlayerPro
         /// <summary>Από ένα zip διαλέγει το καλύτερο αρχείο υποτίτλων: προτιμά .srt, μετά .vtt/.ass/.ssa, και το μεγαλύτερο (πλήρες) από ίδια επέκταση.</summary>
         static SubBlob BestEntry(ZipArchive z)
         {
-            var en = z.Entries.Where(e => e.Length > 0 && SubFormats.Extensions.Contains(System.IO.Path.GetExtension(e.Name).ToLowerInvariant()))
+            var en = z.Entries.Where(e => e.Length > 0 && e.Length <= SubLimits.MaxSubtitleBytes && SubLimits.SafeEntryName(e.FullName) && SubFormats.Extensions.Contains(System.IO.Path.GetExtension(e.Name).ToLowerInvariant()))
                               .OrderBy(e => Array.IndexOf(SubFormats.Extensions, System.IO.Path.GetExtension(e.Name).ToLowerInvariant())).ThenByDescending(e => e.Length).FirstOrDefault();
             if (en == null) return null;
-            using (var s = en.Open()) { var ms = new MemoryStream(); s.CopyTo(ms); return new SubBlob { Data = ms.ToArray(), Ext = System.IO.Path.GetExtension(en.Name).ToLowerInvariant() }; }
+            using (var s = en.Open()) { return new SubBlob { Data = SubLimits.ReadLimited(s), Ext = System.IO.Path.GetExtension(en.Name).ToLowerInvariant() }; }
         }
 
         // ---------- Πάροχος 2: OpenSubtitles.com (επίσημο API, χρειάζεται API key + λογαριασμό) ----------
@@ -309,6 +309,7 @@ namespace MediaPlayerPro
                         if (blob == null) { Say("Το zip δεν περιέχει υπότιτλους (.srt, .vtt, .ass — τα .rar δεν υποστηρίζονται)"); return; }
                     }
                 }
+                else if (new FileInfo(path).Length > SubLimits.MaxSubtitleBytes) { Say(Loc.T("Το αρχείο είναι πολύ μεγάλο για υπότιτλο (>5 MB)", "The file is too large to be a subtitle (>5 MB)")); return; }
                 else blob = new SubBlob { Data = File.ReadAllBytes(path), Ext = System.IO.Path.GetExtension(path).ToLowerInvariant() };
                 var cfg = LoadCfg(); var target = SaveSub(v, cfg.Languages.Split(',')[0].Trim(), blob); AttachSub(target);
                 Say("Υπότιτλοι φορτώθηκαν: " + System.IO.Path.GetFileName(path));
