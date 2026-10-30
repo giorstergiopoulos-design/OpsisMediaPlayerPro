@@ -49,7 +49,7 @@ namespace MediaPlayerPro
                     { var v = CurPath(); if (v != null) { if (c == "subdl:s4f") OpenSubs4Free(v); else _ = DownloadSubs(v, c == "subdl" ? "auto" : c.Substring(6)); } return true; }
                 case "subsync": _ = SyncCurrent(); return true;
                 case "subline": SyncToLine(); return true;
-                case "subcfg": LoadCfg(); Process.Start(new ProcessStartInfo("notepad.exe", "\"" + CfgFile + "\"") { UseShellExecute = true }); return true;
+                case "subcfg": LoadCfg(); Process.Start(new ProcessStartInfo(TrustedExe.Windows("notepad.exe"), "\"" + CfgFile + "\"") { UseShellExecute = true }); return true;
             }
             return ExtraCmd(c) || MoreCmd(c);
         }

@@ -1,4 +1,5 @@
 using System;
+using MediaPlayerPro.Conv;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -37,7 +38,7 @@ namespace MediaPlayerPro
         void AfterPlayback()
         {
             if (after == "exit") Close();
-            else if (after == "shutdown") { Process.Start("shutdown", "/s /t 30"); Say("Τερματισμός υπολογιστή σε 30″ (shutdown /a για ακύρωση)"); }
+            else if (after == "shutdown") { Process.Start(TrustedExe.System32("shutdown.exe"), "/s /t 30"); Say("Τερματισμός υπολογιστή σε 30″ (shutdown /a για ακύρωση)"); }
         }
 
         void AddRecent(string p)

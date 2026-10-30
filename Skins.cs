@@ -144,7 +144,7 @@ namespace MediaPlayerPro
             }
             SkinMenu.Items.Add(ac);
             var o = new MenuItem { Header = "Άνοιγμα φακέλου δικών μου θεμάτων…" };
-            o.Click += (s, e) => { var d = System.IO.Path.Combine(AppDir, "Skins"); Directory.CreateDirectory(d); Process.Start(new ProcessStartInfo("explorer.exe", "\"" + d + "\"") { UseShellExecute = true }); };
+            o.Click += (s, e) => { var d = System.IO.Path.Combine(AppDir, "Skins"); Directory.CreateDirectory(d); Process.Start(new ProcessStartInfo(TrustedExe.Explorer, "\"" + d + "\"") { UseShellExecute = true }); };
             SkinMenu.Items.Add(o);
             SideAuto.IsChecked = sideMode == "auto"; SidePin.IsChecked = sideMode == "pin"; SideHide.IsChecked = sideMode == "hide"; MetaToggle.IsChecked = LoadCfg().OnlineMeta;
         }

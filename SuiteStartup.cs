@@ -1,4 +1,6 @@
 using System;
+using System.Diagnostics;
+using MediaPlayerPro.Conv;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -51,7 +53,7 @@ namespace MediaPlayerPro
             if (args.Contains("--suite-demo")) { StartSuiteDemo(); return; }
             if (suiteTestMode) return;
 
-            Loaded += async (s, e) => { await Task.Delay(1500); MaybeWelcome(); };
+            Loaded += async (s, e) => { await Task.Delay(1500); MaybeWelcome(); ReportFailedUpdate(); };
             var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };                     // πρώτος έλεγχος 30 s μετά την εκκίνηση, μετά κάθε 24 ώρες
             t.Tick += async (s, e) => { t.Interval = TimeSpan.FromHours(24); await CheckUpdateAsync(false); };
             t.Start();
@@ -99,30 +101,72 @@ namespace MediaPlayerPro
             ShowUpdateToast(info); updater.MarkNotified(info.Tag);                                   // μία φορά ανά έκδοση
         }
 
+        static string UpdateLog => System.IO.Path.Combine(UpdateDir, "last-update.log");
+
+        /// <summary>Αν η προηγούμενη σιωπηλή ενημέρωση απέτυχε, ο χρήστης το μαθαίνει στην επόμενη εκκίνηση (μία φορά).</summary>
+        void ReportFailedUpdate()
+        {
+            try
+            {
+                if (!File.Exists(UpdateLog)) return;
+                var last = File.ReadAllLines(UpdateLog).LastOrDefault(l => l.Trim().Length > 0) ?? "";
+                if (last.Contains("FAILED")) Say(SuiteUi.T("Η τελευταία ενημέρωση απέτυχε: ", "The last update failed: ") + last.Substring(Math.Min(last.Length, 20)) + SuiteUi.T(" — δες ", " — see ") + UpdateLog);
+                File.Move(UpdateLog, UpdateLog + ".old", true);
+            }
+            catch (Exception) { }
+        }
+
+        static string UpdateDir => System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "OpsisMediaPlayerPro", "update");
+
         void ShowUpdateToast(UpdateInfo info)
         {
             HideToast();
             var host = Osd?.Parent as Panel; if (host == null) return;                                 // μέσα στο overlay του βίντεο, αλλιώς το VideoView το καλύπτει
             var text = SuiteUi.Text(AppTitleText() + " " + info.Tag + SuiteUi.T(" είναι διαθέσιμη", " is available"), 14, bold: true, wrap: false);
-            var sub = SuiteUi.Text(SuiteUi.T("Δες τι νέο υπάρχει στη σελίδα της έκδοσης.", "See what's new on the release page."), 12, "MutedBrush");
-            var open = new Button { Content = SuiteUi.T("Τι νέο υπάρχει", "What's new"), Margin = new Thickness(0, 8, 8, 0) };
-            var close = new Button { Content = "✕", Margin = new Thickness(0, 8, 0, 0), MinWidth = 36 };
-            var row = new StackPanel { Orientation = Orientation.Horizontal }; row.Children.Add(open); row.Children.Add(close);
-            var col = new StackPanel(); col.Children.Add(text); col.Children.Add(sub); col.Children.Add(row);
-            toast = new Border { Padding = new Thickness(16, 12, 16, 14), Margin = new Thickness(0, 14, 18, 0), CornerRadius = new CornerRadius(12), BorderThickness = new Thickness(1), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, Child = col, MaxWidth = 460 };
+            var sub = SuiteUi.Text(SuiteUi.T("Η εγκατάσταση γίνεται σιωπηλά με έλεγχο SHA-256 και η εφαρμογή ανοίγει ξανά.", "The update installs silently after a SHA-256 check and the app reopens."), 12, "MutedBrush");
+            var install = new Button { Content = SuiteUi.T("Εγκατάσταση", "Install"), Margin = new Thickness(0, 8, 8, 0), IsDefault = true };
+            var later = new Button { Content = SuiteUi.T("Αργότερα", "Later"), Margin = new Thickness(0, 8, 8, 0) };
+            var skip = new Button { Content = SuiteUi.T("Παράλειψη έκδοσης", "Skip this version"), Margin = new Thickness(0, 8, 8, 0) };
+            var open = new Button { Content = SuiteUi.T("Τι νέο υπάρχει", "What's new"), Margin = new Thickness(0, 8, 0, 0) };
+            var row = new WrapPanel(); row.Children.Add(install); row.Children.Add(later); row.Children.Add(skip); row.Children.Add(open);
+            var status = SuiteUi.Text("", 12, "MutedBrush");
+            var col = new StackPanel(); col.Children.Add(text); col.Children.Add(sub); col.Children.Add(row); col.Children.Add(status);
+            toast = new Border { Padding = new Thickness(16, 12, 16, 14), Margin = new Thickness(0, 14, 18, 0), CornerRadius = new CornerRadius(12), BorderThickness = new Thickness(1), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, Child = col, MaxWidth = 480 };
             toast.SetResourceReference(Border.BackgroundProperty, "BarBrush"); toast.SetResourceReference(Border.BorderBrushProperty, "AccentBrush");
             toast.Effect = new System.Windows.Media.Effects.DropShadowEffect { BlurRadius = 18, ShadowDepth = 3, Opacity = 0.5 };
             Panel.SetZIndex(toast, 50);
-            open.Click += (s, e) => { SuiteUi.OpenUrl(info.Url); HideToast(); };
-            close.Click += (s, e) => HideToast();
+            open.Click += (s, e) => SuiteUi.OpenUrl(info.Url);
+            later.Click += (s, e) => HideToast();
+            skip.Click += (s, e) => { updater.SkipVersion(info.Tag); HideToast(); };
+            install.Click += async (s, e) =>
+            {
+                install.IsEnabled = later.IsEnabled = skip.IsEnabled = false; toastTimer?.Stop();
+                status.Text = SuiteUi.T("Λήψη και έλεγχος SHA-256…", "Downloading and checking SHA-256…");
+                DownloadResult r;
+                try { r = await SelfUpdate.PrepareAsync(suiteHttp, info, "OpsisMediaPlayerPro-Setup.exe", UpdateDir); } catch (Exception ex) { r = new DownloadResult { Status = DownloadStatus.DownloadFailed, Message = ex.Message }; }
+                if (r.Status == DownloadStatus.Ok)
+                {
+                    try
+                    {
+                        string script = SelfUpdate.BuildScript(r.Path, r.Actual, Environment.ProcessId, Environment.ProcessPath ?? "", logPath: UpdateLog);
+                        Process.Start(new ProcessStartInfo(TrustedExe.System32(@"WindowsPowerShell\v1.0\powershell.exe")) { ArgumentList = { "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Hidden", "-Command", script }, UseShellExecute = false, CreateNoWindow = true });
+                        Application.Current.Shutdown(); return;
+                    }
+                    catch (Exception ex) { status.Text = SuiteUi.T("Αποτυχία εκκίνησης: ", "Could not start the installer: ") + ex.Message; }
+                }
+                else status.Text = r.Status == DownloadStatus.Mismatch ? SuiteUi.T("Η λήψη απορρίφθηκε: το SHA-256 δεν ταιριάζει (το αρχείο διαγράφηκε).", "Download refused: the SHA-256 does not match (the file was deleted).")
+                                 : r.Status == DownloadStatus.NoChecksum ? SuiteUi.T("Δεν υπάρχει SHA-256 για επαλήθευση — άνοιξε τη σελίδα της έκδοσης.", "No SHA-256 to verify against — open the release page.")
+                                 : SuiteUi.T("Η λήψη απέτυχε — δοκίμασε «Τι νέο υπάρχει» για χειροκίνητη λήψη.", "The download failed — use \"What's new\" for a manual download.");
+                later.IsEnabled = skip.IsEnabled = true; install.IsEnabled = true;
+            };
             host.Children.Add(toast);
             if (!SuiteUi.LowAnimations)
             {
                 toast.RenderTransform = new System.Windows.Media.TranslateTransform();
-                ((System.Windows.Media.TranslateTransform)toast.RenderTransform).BeginAnimation(System.Windows.Media.TranslateTransform.XProperty, new DoubleAnimation(80, 0, TimeSpan.FromMilliseconds(260)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+                ((System.Windows.Media.TranslateTransform)toast.RenderTransform).BeginAnimation(System.Windows.Media.TranslateTransform.XProperty, new DoubleAnimation(80, 0, TimeSpan.FromMilliseconds(260)) { EasingFunction = new System.Windows.Media.Animation.CubicEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut } });
                 toast.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(260)));
             }
-            toastTimer?.Stop(); toastTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) }; toastTimer.Tick += (s, e) => HideToast(); toastTimer.Start();
+            toastTimer?.Stop(); toastTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(2) }; toastTimer.Tick += (s, e) => HideToast(); toastTimer.Start();
         }
 
         static string AppTitleText() => "Opsis Media Player Pro";

@@ -1,4 +1,5 @@
 using System;
+using MediaPlayerPro.Conv;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -367,7 +368,7 @@ namespace MediaPlayerPro
         private void OpenApp(SuiteApp app)
         {
             if (!_info.TryGetValue(app.Id, out var i) || string.IsNullOrEmpty(i.St.Path) || !File.Exists(i.St.Path)) return;
-            try { Process.Start(new ProcessStartInfo(i.St.Path) { UseShellExecute = true }); } catch (Exception) { }
+            try { if (TrustedExe.IsLaunchable(i.St.Path)) Process.Start(new ProcessStartInfo(i.St.Path) { UseShellExecute = true }); } catch (Exception) { }
         }
 
         /// <summary>Λήψη: επιβεβαίωση με όνομα/μέγεθος/πηγή, επαλήθευση SHA-256, ΑΡΝΗΣΗ σε ασυμφωνία. Χωρίς checksum ή asset ανοίγει μόνο τη σελίδα του release. Δεν εκτελεί τίποτα χωρίς ερώτηση.</summary>
@@ -395,7 +396,7 @@ namespace MediaPlayerPro
                 if (res.Status == DownloadStatus.Ok)
                 {
                     var run = MessageBox.Show(this, SuiteUi.T("Κατέβηκε και επαληθεύτηκε (SHA-256).\n\n", "Downloaded and verified (SHA-256).\n\n") + res.Path + "\n\n" + SuiteUi.T("Να ανοίξει ο φάκελος;", "Open the folder?"), app.Name, MessageBoxButton.YesNo, MessageBoxImage.Information, MessageBoxResult.Yes);
-                    if (run == MessageBoxResult.Yes) { try { Process.Start("explorer.exe", "/select,\"" + res.Path + "\""); } catch (Exception) { } }
+                    if (run == MessageBoxResult.Yes) { try { Process.Start(TrustedExe.Explorer, "/select,\"" + res.Path + "\""); } catch (Exception) { } }
                 }
                 else if (res.Status == DownloadStatus.Mismatch) MessageBox.Show(this, SuiteUi.T("ΑΠΟΡΡΙΦΘΗΚΕ: το SHA-256 του αρχείου δεν ταιριάζει με το αναμενόμενο. Το αρχείο διαγράφηκε.", "REFUSED: the file's SHA-256 does not match the expected value. The file was deleted."), app.Name, MessageBoxButton.OK, MessageBoxImage.Warning);
                 else MessageBox.Show(this, SuiteUi.T("Η λήψη απέτυχε. Δοκίμασε από τη σελίδα της έκδοσης.", "The download failed. Try the release page."), app.Name, MessageBoxButton.OK, MessageBoxImage.Warning);

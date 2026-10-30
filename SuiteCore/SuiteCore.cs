@@ -195,7 +195,7 @@ namespace Opsis.Suite
     }
 
     // ---------------------------------------------------------------- Έλεγχος νέας έκδοσης ----------------------------------------------
-    public sealed class UpdateInfo { public string Tag = "", Name = "", Url = ""; }
+    public sealed class UpdateInfo { public string Tag = "", Name = "", Url = "", Notes = ""; public ReleaseDto Release; }
 
     /// <summary>
     /// Ένα GET την ημέρα στο api.github.com/repos/&lt;owner&gt;/&lt;repo&gt;/releases/latest (με ETag, timeout 8 s, χωρίς σφάλματα προς τα έξω). Ειδοποιεί ΜΙΑ φορά ανά έκδοση.
@@ -221,6 +221,9 @@ namespace Opsis.Suite
         }
 
         public string NotifiedTag => _store.Get("update.notified");
+        /// <summary>«Παράλειψη έκδοσης»: αυτή η έκδοση δεν ξαναπροτείνεται (μια νεότερη ναι).</summary>
+        public string SkippedTag => _store.Get("update.skipped");
+        public void SkipVersion(string tag) => _store.Set("update.skipped", tag ?? "");
         public void MarkNotified(string tag) => _store.Set("update.notified", tag);
 
         public async Task<UpdateInfo> CheckAsync(bool force = false)
@@ -237,8 +240,8 @@ namespace Opsis.Suite
             _store.Set("update.lastOk", _now().ToString("O"));
             var rel = ReleaseDto.Parse(body);
             if (rel == null || rel.Draft || rel.Prerelease || !SemVer.IsNewer(rel.Tag, _current)) return null;
-            if (!force && NotifiedTag == rel.Tag) return null;
-            return new UpdateInfo { Tag = rel.Tag, Name = string.IsNullOrEmpty(rel.Name) ? rel.Tag : rel.Name, Url = rel.Url };
+            if (!force && (NotifiedTag == rel.Tag || SkippedTag == rel.Tag)) return null;
+            return new UpdateInfo { Tag = rel.Tag, Name = string.IsNullOrEmpty(rel.Name) ? rel.Tag : rel.Name, Url = rel.Url, Notes = rel.Body ?? "", Release = rel };
         }
     }
 
@@ -445,6 +448,39 @@ namespace Opsis.Suite
             File.Move(part, dest); res.Path = dest; res.Status = DownloadStatus.Ok; return res;
         }
         private static void SafeDelete(string p) { try { if (File.Exists(p)) File.Delete(p); } catch (IOException) { } }
+    }
+
+    /// <summary>Η ίδια ροή ενημέρωσης σε όλες τις εφαρμογές: λήψη του installer ΜΟΝΟ από τα releases του repo με επαλήθευση SHA-256 (άρνηση + διαγραφή σε ασυμφωνία),
+    /// μετά σιωπηλή εγκατάσταση από βοηθητικό script που ξαναελέγχει το hash και ξεκινά αφού κλείσει η εφαρμογή.</summary>
+    public static class SelfUpdate
+    {
+        public static async Task<DownloadResult> PrepareAsync(IHttp http, UpdateInfo info, string installerAsset, string destinationDir)
+        {
+            var rel = info?.Release; if (rel == null) return new DownloadResult { Status = DownloadStatus.NoAsset };
+            var asset = rel.Assets.FirstOrDefault(a => string.Equals(a.Name, installerAsset, StringComparison.OrdinalIgnoreCase));
+            if (asset == null) return new DownloadResult { Status = DownloadStatus.NoAsset };
+            var app = new SuiteApp { InstallerAsset = installerAsset, ChecksumAsset = installerAsset + ".sha256" };
+            string expected = await SafeInstaller.ExpectedSha256Async(http, rel, app, asset);
+            return await SafeInstaller.DownloadVerifiedAsync(http, asset, expected, destinationDir);
+        }
+
+        static string Q(string s) => "'" + (s ?? "").Replace("'", "''") + "'";
+
+        /// <summary>PowerShell script: περιμένει να κλείσει η εφαρμογή, ξαναελέγχει το SHA-256 (TOCTOU), τρέχει τον installer σιωπηλά (με UAC, εγκατάσταση σε Program Files) και ανοίγει ξανά την εφαρμογή.</summary>
+        public static string BuildScript(string setupPath, string sha256, int waitPid, string appExe, string mode = null, bool relaunch = true, bool waitForever = false, string logPath = null)
+        {
+            if (string.IsNullOrEmpty(sha256) || sha256.Length != 64) throw new ArgumentException("sha256");
+            string L(string msg) => string.IsNullOrEmpty(logPath) ? "" : "try { Add-Content -LiteralPath " + Q(logPath) + " -Value ((Get-Date -Format s) + ' " + msg + "') } catch { }\n";
+            return "$ErrorActionPreference = 'Stop'\n"
+                 + L("update started")
+                 + "try { Wait-Process -Id " + waitPid + (waitForever ? "" : " -Timeout 120") + " -ErrorAction SilentlyContinue } catch { }\n"
+                 + "if ((Get-FileHash -LiteralPath " + Q(setupPath) + " -Algorithm SHA256).Hash.ToLowerInvariant() -ne " + Q(sha256.ToLowerInvariant()) + ") { " + L("FAILED: SHA-256 changed after download - installer not run") + "exit 2 }\n"
+                 + L("hash ok, running installer")
+                 + "try { $p = Start-Process -FilePath " + Q(setupPath) + " -ArgumentList '/SILENT','/SUPPRESSMSGBOXES','/NORESTART','/CLOSEAPPLICATIONS'" + (string.IsNullOrEmpty(mode) ? "" : ",'/MODE=" + mode + "'") + " -Verb RunAs -Wait -PassThru } catch { " + L("FAILED: installer was not started (UAC declined?)") + "exit 3 }\n"
+                 + "if ($p.ExitCode -ne 0) { " + L("FAILED: installer exit code ' + $p.ExitCode + '") + "exit 4 }\n"
+                 + L("installed")
+                 + (relaunch ? "if (Test-Path -LiteralPath " + Q(appExe) + ") { Start-Process -FilePath " + Q(appExe) + " }" : "");
+        }
     }
 
     public static class SuiteLang

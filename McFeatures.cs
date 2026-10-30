@@ -1,4 +1,5 @@
 using System;
+using MediaPlayerPro.Conv;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -82,7 +83,7 @@ namespace MediaPlayerPro
                 case "prevfile": Play(Math.Max(idx - 1, 0)); return true;
                 case "nextfile": if (idx + 1 < items.Count) Play(idx + 1); return true;
                 case "openurl": { var u = Prompt("Άνοιγμα URL / stream (http, rtsp, mms, udp…)", ""); if (!string.IsNullOrWhiteSpace(u) && u.Contains("://")) AddFiles(new[] { u.Trim() }, true); return true; }
-                case "listfolder": { if (List.SelectedItem is Item it && System.IO.File.Exists(it.Path)) System.Diagnostics.Process.Start("explorer.exe", "/select,\"" + it.Path + "\""); return true; }
+                case "listfolder": { if (List.SelectedItem is Item it && System.IO.File.Exists(it.Path)) System.Diagnostics.Process.Start(TrustedExe.Explorer, "/select,\"" + it.Path + "\""); return true; }
                 case "listcopy": { if (List.SelectedItem is Item it) Clipboard.SetText(it.Path); return true; }
                 case "sd0": mp.SetSpuDelay(0); Say("Καθυστέρηση υποτίτλων 0"); return true;
                 case "plup": MoveSelected(-1); return true;
