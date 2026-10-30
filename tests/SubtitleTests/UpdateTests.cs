@@ -137,3 +137,18 @@ namespace MediaPlayerPro.Tests
         }
     }
 }
+
+namespace MediaPlayerPro.Tests
+{
+    public class InstallerScriptTests
+    {
+        static string Root() { var d = System.AppContext.BaseDirectory; while (d != null && !System.IO.Directory.Exists(System.IO.Path.Combine(d, "installer"))) d = System.IO.Path.GetDirectoryName(d); return d; }
+        [Fact] public void InstallsToProgramFilesAndMigratesPerUser()
+        {
+            var iss = System.IO.File.ReadAllText(System.IO.Path.Combine(Root(), "installer", "OpsisMediaPlayerPro.iss"));
+            Assert.Contains("PrivilegesRequired=admin", iss); Assert.Contains("DefaultDirName={autopf}", iss); Assert.Contains("UsePreviousAppDir=no", iss);
+            Assert.Contains("RemoveOldPerUserInstall", iss); Assert.DoesNotContain("PrivilegesRequired=lowest", iss);
+            Assert.DoesNotContain("Root: HKCU; Subkey: \"Software\Classes", iss);
+        }
+    }
+}
