@@ -71,6 +71,18 @@ namespace MediaPlayerPro
                     SetInterface(originalUi);
                 }
                 catch (Exception ex) { log.AppendLine("SNAPSHOT WAVE ERROR " + ex); }
+                try
+                {
+                    // Δεξιά-προς-αριστερά (RTL): το WPF καθρεφτίζει τη διάταξη με FlowDirection· φωτογραφία των νέων παραθύρων για έλεγχο
+                    ShowSettingsWindow(3); settingsWin.FlowDirection = FlowDirection.RightToLeft; await System.Threading.Tasks.Task.Delay(500);
+                    SaveShot(settingsWin, System.IO.Path.Combine(dir, "settings-subtitles-rtl.png")); settingsWin.Close();
+                    if (src != null)
+                    {
+                        var rc = new ConvertWindow(src, 5, 15) { Owner = this, FlowDirection = FlowDirection.RightToLeft }; rc.Show(); await System.Threading.Tasks.Task.Delay(600);
+                        SaveShot((FrameworkElement)rc.Content, System.IO.Path.Combine(dir, "converter-rtl.png")); rc.Close();
+                    }
+                }
+                catch (Exception ex) { log.AppendLine("SNAPSHOT RTL ERROR " + ex); }
                 File.WriteAllText(System.IO.Path.Combine(dir, "snapshots.log"), log.ToString());
                 mode = original; ApplySkin(curSkin, false); Environment.Exit(0);
             };

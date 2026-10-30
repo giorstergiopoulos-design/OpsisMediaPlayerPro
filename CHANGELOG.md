@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.1 — 2026-10-30
+- **Right-to-left check**: the new Settings window and the Converter dialog were rendered with `FlowDirection=RightToLeft`: labels move to the right, fields to the left, nothing is clipped (the capture of a mirrored visual shows mirrored text; that is a capture artefact). `--snapshots` now also writes these RTL images.
+- **VP9 output ~0.9 s short — investigated, NOT fixable here**: with the bundled libvlc 3.0.21 the VP9 encoder options (`lag-in-frames`, `quality`) have no effect (identical output), and the loss also occurs without audio; libvpx at 1080p cannot keep real-time pace and drops frames. VP9 stays marked "experimental"; VP8 WebM or MP4 are the safe choices.
+- Audio effects without a stream restart: **not possible** with libvlc 3.0 (the filters are set when the stream starts); the effect applies after 0.12 s with the position kept. Documented in the Audio settings page.
+- Still NOT VERIFIED: the installer and per-user migration on a clean/upgraded PC, the update popup against a real newer release, a real 150 % DPI session. Windows 11 style rows in the old dialogs and a UI-Automation click-through of the old menus are not done (the `--selftest` already executes every menu and button tag, 119 checks).
+
 ## 1.6.0 — 2026-10-30
 - **Unified update popup** (same buttons and messages as the other Opsis apps): 30 s after start and every 24 h (ETag, once per version) the toast offers **Install / Later / Skip this version / What's new**. Install downloads only from this repository's release, checks SHA-256 (refuses and deletes on a mismatch, never runs without a digest), then a helper re-checks the hash, asks for administrator rights (UAC), installs silently into Program Files and reopens the player. Every stage goes to `%LocalAppData%\OpsisMediaPlayerPro\update\last-update.log`; a failed update is reported on the next start. Tests with a fake HTTP layer.
 - **Wave interface**: a second look based on the Waveframe palettes (20 themes generated from Waveframe's `styles.css`, rounded controls). Themes -> Interface -> Classic (MPC) / Wave switches live, no restart.
